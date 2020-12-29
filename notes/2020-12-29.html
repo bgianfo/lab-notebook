@@ -168,11 +168,11 @@
 <p>I've noticed a few people whom I follow and admire online have started to keep lab notebooks.
 I first ran across the idea when I saw <a href="https://twitter.com/whitequark">whitequark</a>'s notebook <a href="https://lab.whitequark.org/">lab.whitequark.org</a>,
 and then this evening I ran across <a href="https://twitter.com/bitshiftmask">bitshiftmask</a>'s <a href="https://lab.jamesmunns.com/">lab.jamesmunns.com</a> by chance
-and saw they were doing a similar thing with <a href="https://github.com/rust-lang/mdBook">mdbook</a> which seems very easy and straight forward.</p>
+and saw they were doing a similar thing with <a href="https://github.com/rust-lang/mdBook">mdbook</a> which seems very easy to use and straight forward to setup and maintain.</p>
 <p>I've been on a personal knowledge management kick recently, and I've been playing whit <a href="https://obsidian.md/">obsidian.md</a> for maintaining a 'second brain'.
 The idea of a public lab notebook seems like an interesting idea that I want to play with. So this first post is going to be the process of setting this up.</p>
 <h2><a class="header" href="#boot-strapping-the-book" id="boot-strapping-the-book">Boot Strapping The Book</a></h2>
-<p>To get started with the notebook first I created a new GitHub repository [github.com/bgianfo/lab-notebook)(https://github.com/bgianfo/lab-notebook).
+<p>To get started with the notebook first I created a new GitHub repository <a href="https://github.com/bgianfo/lab-notebook/">github.com/bgianfo/lab-notebook</a>.
 Then I configured my lab notebook <code>mdbook</code> project just enough so that this page building.</p>
 <pre><code class="language-bash">C:\src\lab-notebook&gt;tree /A /F
 |   .gitignore
@@ -233,9 +233,10 @@ jobs:
           publish_dir: ./book
 </code></pre>
 <p>I looked for signs that the action ran, and nothing... so double checking the pipeline
-I realized that github created the new default branch as <code>main</code>, not <code>master</code>.
-(See announcement here: https://github.com/github/renaming)</p>
-<p>So we nee one small change to our pipeline to fix things up:</p>
+I realized that GitHub created the new default branch as <code>main</code>, not <code>master</code>. So our
+pipeline wasn't running because we are listening for push events on the wrong branch.
+Announcement: <a href="https://github.com/github/renaming">https://github.com/github/renaming</a></p>
+<p>So we need one small change to our pipeline to fix things up:</p>
 <pre><code class="language-diff">commit 78fd8a787cf6a2f49eca8e402eb6aede9caad174
 Author: Brian Gianforcaro &lt;b.gianfo@gmail.com&gt;
 Date:   Tue Dec 29 03:17:52 2020 -0800
