@@ -1,0 +1,6 @@
+[book]
+authors = ["Brian Gianforcaro"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Brian's Lab Notebook"
