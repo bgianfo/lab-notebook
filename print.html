@@ -198,7 +198,7 @@ Then I configured my lab notebook <code>mdbook</code> project just enough so tha
 2020-12-29 03:02:15 [INFO] (warp::server): Server::run; addr=[::1]:3000
 2020-12-29 03:02:15 [INFO] (warp::server): listening on http://[::1]:3000
 2020-12-29 03:02:15 [INFO] (mdbook::cmd::watch): Listening for changes...
-2020-12-29 03:02:22 [INFO] (mdbook::cmd::serve): Files changed: [&quot;C:\\src\\lab-notebook\\src\\notes\\2020-12-29.md&quot;]
+2020-12-29 03:02:22 [INFO] (mdbook::cmd::serve): Files changed: [&quot;notes\2020-12-29.md&quot;]
 2020-12-29 03:02:22 [INFO] (mdbook::cmd::serve): Building book...
 2020-12-29 03:02:22 [INFO] (mdbook::book): Book building has started
 2020-12-29 03:02:22 [INFO] (mdbook::book): Running the html backend
@@ -237,14 +237,58 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./book
 </code></pre>
-<p>That worked without a hitch and automatically created a new <code>gh-pages</code> branch in my
-git repository. In the repository settings I was then able to configure <strong>github pages</strong>
+<p>I looked for signs that the action ran, and nothing... so double checking the pipeline
+I realized that github created the new default branch as <code>main</code>, not <code>master</code>.
+(See announcement here: https://github.com/github/renaming)</p>
+<p>So we nee one small change to our pipeline to fix things up:</p>
+<pre><code class="language-diff">commit 78fd8a787cf6a2f49eca8e402eb6aede9caad174
+Author: Brian Gianforcaro &lt;b.gianfo@gmail.com&gt;
+Date:   Tue Dec 29 03:17:52 2020 -0800
+
+    CI: Fix to modern branch name
+
+diff --git a/.github/workflows/deploy.yml b/.github/workflows/deploy.yml
+index cf0fa96..7707376 100644
+--- a/.github/workflows/deploy.yml
++++ b/.github/workflows/deploy.yml
+@@ -3,7 +3,7 @@ name: Publish To GitHub Pages
+ on:
+   push:
+     branches:
+-      - master
++      - main
+</code></pre>
+<p>That worked and automatically created a new <code>gh-pages</code> branch in the repository.
+In the GitHub repository settings I was then able to configure <strong>github pages</strong>
 to use the new gh-pages branch. See: <a href="https://docs.github.com/en/free-pro-team@latest/github/working-with-github-pages/managing-a-custom-domain-for-your-github-pages-site">GitHub Docs: Managing a custom domain for your GitHub Pages site</a></p>
 <p>I then configured github pages to publish under a custom domain (lab.bjg.io), this
 will automatically create a new <a href="https://github.com/bgianfo/lab-notebook/commit/5a85fb76a5d87e720913c3ae8d92be26387abf1d">CNAME</a>
 file in the root of your project. Next I  went to by DNS provider and added a new 
 <strong>CNAME</strong> record to my domain configuration pointing <code>lab.bjg.io -&gt; bgianfo.github.io</code>.</p>
 <p>And Voila! It Alive!</p>
+<p>Well kind of ... As soon as I pushed new changes, the sub domain no longer works.
+That is very strange?</p>
+<p>After some digging in the CI logs, I realized that the <code>actions-gh-pages</code> action was
+deleting the CNAME file in the gh-pages branch on every push, breaking the configuration.
+I looked through the docs for the gh-pages action and found they have their own
+option for auto generating the CNAME file from within the action. So I made a
+small change to use that option:</p>
+<pre><code class="language-diff">commit 2f5c50ad033f4db4401ba7ddf427306ed326ab2e
+Author: Brian Gianforcaro &lt;b.gianfo@gmail.com&gt;
+Date:   Tue Dec 29 04:10:11 2020 -0800
+
+    CI: Configure CNAME when generating html and publishing to gh-pages
+
+diff --git a/.github/workflows/deploy.yml b/.github/workflows/deploy.yml
+index 7707376..1364391 100644
+--- a/.github/workflows/deploy.yml
++++ b/.github/workflows/deploy.yml
+@@ -23,3 +23,4 @@ jobs:
+         with:
+           github_token: ${{ secrets.GITHUB_TOKEN }}
+           publish_dir: ./book
++          cname: lab.bjg.io
+</code></pre>
 
                     </main>
 
