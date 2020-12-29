@@ -4,3 +4,8 @@ language = "en"
 multilingual = false
 src = "src"
 title = "Brian's Lab Notebook"
+
+[output.html]
+git-repository-url = "http://github.com/bgianfo/lab-notebook"
+default-theme = "ayu"
+preferred-dark-theme = "ayu"
