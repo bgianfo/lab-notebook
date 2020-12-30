@@ -24,7 +24,8 @@ Date:   Tue Dec 29 21:12:47 2020 -0800
     Notes: Add note about signing commits with keybase pgp keys
 ```
 
-GitHub displays these with the *VERIFIED* qualifier.
+GitHub displays these with the **VERIFIED** qualifier.
+
 See: [https://github.com/bgianfo/lab-notebook/commit/be372efa95c64ef4a71e2b06e69baf47d275923f](https://github.com/bgianfo/lab-notebook/commit/be372efa95c64ef4a71e2b06e69baf47d275923f)
 
 
