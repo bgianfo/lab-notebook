@@ -97,7 +97,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="background.html"><strong aria-hidden="true">1.</strong> Background</a></li><li class="spacer"></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Notes</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="notes/2020-12-29.html"><strong aria-hidden="true">2.1.</strong> 2020-12-29: Lab Notebook Setup</a></li><li class="chapter-item expanded "><a href="notes/2020-12-29-gpg-signing.html"><strong aria-hidden="true">2.2.</strong> 2020-12-29: Keybase Commit Signing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="background.html"><strong aria-hidden="true">1.</strong> Background</a></li><li class="spacer"></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Notes</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="notes/2020-12-29.html"><strong aria-hidden="true">2.1.</strong> 2020-12-29: Lab Notebook Setup</a></li><li class="chapter-item expanded "><a href="notes/2020-12-29-gpg-signing.html"><strong aria-hidden="true">2.2.</strong> 2020-12-29: Commit Signing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -305,11 +305,30 @@ index 7707376..1364391 100644
            publish_dir: ./book
 +          cname: lab.bjg.io
 </code></pre>
-<h1><a class="header" href="#signing-git-commits-with-keybase" id="signing-git-commits-with-keybase">Signing Git Commits with Keybase</a></h1>
+<h1><a class="header" href="#git-commit-signing-with-keybase" id="git-commit-signing-with-keybase">Git Commit Signing with Keybase</a></h1>
 <p>I already have a <a href="https://keybase.io/bjg">keybase</a> account.
 I've been interested in getting git commit signing setup with my keybase pgp key.
 I quickly found a nice guide that worked well.
-See: https://meedamian.com/post/keybase-signed-github/</p>
+See: <a href="https://meedamian.com/post/keybase-signed-github/">https://meedamian.com/post/keybase-signed-github</a></p>
+<p>After following the guide, git now shows my commits as signed.
+Example:</p>
+<pre><code class="language-diff">bgianf@LMAO:~/src/lab-notebook/src$ git log --show-signature -1
+commit be372efa95c64ef4a71e2b06e69baf47d275923f (HEAD -&gt; main, origin/main, origin/HEAD)
+gpg: Signature made Tue Dec 29 21:14:34 2020 PST
+gpg:                using RSA key 899C11E2EEAA2EEE43775D148802D4B232E81AFA
+gpg: checking the trustdb
+gpg: marginals needed: 3  completes needed: 1  trust model: pgp
+gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
+gpg: Good signature from &quot;Brian Gianforcaro (http://bjg.io) &lt;b.gianfo@gmail.com&gt;&quot; [ultimate]
+gpg:                 aka &quot;keybase.io/bjg &lt;bjg@keybase.io&gt;&quot; [ultimate]
+Author: Brian Gianforcaro &lt;b.gianfo@gmail.com&gt;
+Date:   Tue Dec 29 21:12:47 2020 -0800
+
+    Notes: Add note about signing commits with keybase pgp keys
+</code></pre>
+<p>GitHub displays these with the <em>VERIFIED</em> qualifier.
+See: <a href="https://github.com/bgianfo/lab-notebook/commit/be372efa95c64ef4a71e2b06e69baf47d275923f">https://github.com/bgianfo/lab-notebook/commit/be372efa95c64ef4a71e2b06e69baf47d275923f</a></p>
+<p>Nice!</p>
 
                     </main>
 
