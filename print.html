@@ -330,7 +330,13 @@ Date:   Tue Dec 29 21:12:47 2020 -0800
 <p>See: <a href="https://github.com/bgianfo/lab-notebook/commit/be372efa95c64ef4a71e2b06e69baf47d275923f">https://github.com/bgianfo/lab-notebook/commit/be372efa95c64ef4a71e2b06e69baf47d275923f</a></p>
 <p>Nice!</p>
 <h1><a class="header" href="#writing-codeql-queries-for-serenityos" id="writing-codeql-queries-for-serenityos">Writing CodeQL Queries for SerenityOS</a></h1>
-<p>Steps:</p>
+<p>I previously added CodeQL static analysis support to the SerenityOS build workflow.
+<a href="https://github.com/SerenityOS/serenity/pull/4175">https://github.com/SerenityOS/serenity/pull/4175</a></p>
+<p>Unfortunately you there doesn't seem to be a way to consume the CodeQL database that as part of that
+build pipline on GitHub.
+This seems like a bit of an oversight, and I have raised an issue here: <a href="https://github.com/github/codeql-action/issues/355">https://github.com/github/codeql-action/issues/355</a></p>
+<p>To work around that we will need to create our own database so we can write some custom CodeQL queries.</p>
+<p><strong>Here are the steps I put together:</strong></p>
 <ol>
 <li>
 <p>Setup a clone of the VSCode Starter Workspace (<a href="https://codeql.github.com/docs/codeql-for-visual-studio-code/setting-up-codeql-in-visual-studio-code/#using-the-starter-workspace">docs</a>)</p>
