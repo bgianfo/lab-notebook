@@ -8,6 +8,7 @@
 
 - [SerenityOS]()
     - [2020-12-30: CodeQL Queries](./serenityos/2020-12-30.md)
+    - [2021-01-02: KASAN Research](./serenityos/2021-01-02.md)
 
 - [PolarFire SOC Icicle]()
     - [2020-11-26: Initial Setup](./polarfire/2020-11-26.md)
