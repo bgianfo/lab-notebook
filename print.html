@@ -97,7 +97,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="background.html"><strong aria-hidden="true">1.</strong> Background</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Notes</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="notes/2020-12-29.html"><strong aria-hidden="true">2.1.</strong> 2020-12-29: Lab Notebook Setup</a></li><li class="chapter-item expanded "><a href="notes/2020-12-29-gpg-signing.html"><strong aria-hidden="true">2.2.</strong> 2020-12-29: Commit Signing</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> SerenityOS</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="serenityos/2020-12-30.html"><strong aria-hidden="true">3.1.</strong> 2020-12-30: CodeQL Queries</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> PolarFire SOC Icicle</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="polarfire/2020-11-26.html"><strong aria-hidden="true">4.1.</strong> 2020-11-26: Initial Setup</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="background.html"><strong aria-hidden="true">1.</strong> Background</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Notes</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="notes/2020-12-29.html"><strong aria-hidden="true">2.1.</strong> 2020-12-29: Lab Notebook Setup</a></li><li class="chapter-item expanded "><a href="notes/2020-12-29-gpg-signing.html"><strong aria-hidden="true">2.2.</strong> 2020-12-29: Commit Signing</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> SerenityOS</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="serenityos/2020-12-30.html"><strong aria-hidden="true">3.1.</strong> 2020-12-30: CodeQL Queries</a></li><li class="chapter-item expanded "><a href="serenityos/2021-01-02.html"><strong aria-hidden="true">3.2.</strong> 2021-01-02: KASAN Research</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> PolarFire SOC Icicle</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="polarfire/2020-11-26.html"><strong aria-hidden="true">4.1.</strong> 2020-11-26: Initial Setup</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -371,8 +371,79 @@ select base.getQualifiedName()
 </code></pre>
 </li>
 </ol>
-<h1><a class="header" href="#12-29-2020-initial-setup-of-the-polarfire-soc-icicle-kit" id="12-29-2020-initial-setup-of-the-polarfire-soc-icicle-kit">12-29-2020: Initial Setup of the PolarFire SOC Icicle Kit</a></h1>
+<h1><a class="header" href="#research-into-kasan-in-serenityos" id="research-into-kasan-in-serenityos">Research into KASAN in SerenityOS</a></h1>
 <h2><a class="header" href="#introduction-1" id="introduction-1">Introduction</a></h2>
+<p>Kernel Address Sanitizer (KASAN) is a dynamic analysis technology to find
+dynamic memory errors in OS Kernels. It's based on instrumentation injected
+by the compiler which checks all memory accesses made during execution.</p>
+<p>I'm interested in enabling KASAN for <a href="https://github.com/SerenityOS/serenity">SerenityOS</a></p>
+<p><strong>Links:</strong></p>
+<ul>
+<li><a href="https://www.kernel.org/doc/html/latest/dev-tools/kasan.html">Linux KASAN Docs</a></li>
+<li><a href="https://events.static.linuxfound.org/sites/events/files/slides/LinuxCon%20North%20America%202015%20KernelAddressSanitizer.pdf">Linux KASAN Presentation</a></li>
+<li><a href="https://lwn.net/Articles/612153/">LWN &quot;The kernel address santizer&quot;</a></li>
+<li><a href="https://blog.netbsd.org/tnf/entry/kernel_address_sanitizer_part_3">NetBSD KASAN Blog</a></li>
+<li><a href="https://netbsd.org/%7Ekamil/eurobsdcon2018_ksanitizers.html">NetBSD KASAN Presentation</a></li>
+</ul>
+<p>Here's the NetBSD presentation:</p>
+<iframe align="center" width="900" height="535" src="https://www.youtube-nocookie.com/embed/capbD_aRz40" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<h2><a class="header" href="#lets-start-hacking" id="lets-start-hacking">Lets start hacking!</a></h2>
+<p>So my first attempt at doing anything was to just throw in <code>-fsanitize=kernel-address</code> and see
+what falls out. Here's the first diff:</p>
+<pre><code class="language-diff">diff --git a/Kernel/CMakeLists.txt b/Kernel/CMakeLists.txt
+index 451060bf2..c7d9e5bec 100644
+--- a/Kernel/CMakeLists.txt
++++ b/Kernel/CMakeLists.txt
+@@ -268,6 +268,7 @@ set(CMAKE_CXX_FLAGS &quot;${CMAKE_CXX_FLAGS} -pie -fPIE -fno-rtti -ffreestanding -fbu
+ set(CMAKE_CXX_FLAGS &quot;${CMAKE_CXX_FLAGS} -mno-80387 -mno-mmx -mno-sse -mno-sse2&quot;)
+ set(CMAKE_CXX_FLAGS &quot;${CMAKE_CXX_FLAGS} -fno-asynchronous-unwind-tables&quot;)
+ set(CMAKE_CXX_FLAGS &quot;${CMAKE_CXX_FLAGS} -fstack-protector-strong&quot;)
++set(CMAKE_CXX_FLAGS &quot;${CMAKE_CXX_FLAGS} -fsanitize=kernel-address&quot;)
+ set(CMAKE_CXX_FLAGS &quot;${CMAKE_CXX_FLAGS} -nostdlib -nostdinc -nostdinc++&quot;)
+
+ add_link_options(LINKER:-T ${CMAKE_CURRENT_BINARY_DIR}/linker.ld -nostdlib)
+</code></pre>
+<p>We compile successfully with the new flag, but we fail to link.
+The linker complains about about a bunch of missing <strong>__asan_load{n}_noabort</strong> functions.</p>
+<pre><code>... snip ...
+./Build/Kernel/././AK/OwnPtr.h:140: undefined reference to `__asan_load4_noabort'
+./Build/Kernel/././AK/NonnullOwnPtr.h:124: undefined reference to `__asan_load4_noabort'
+./Build/Kernel/././Kernel/VM/RangeAllocator.h:48: undefined reference to `__asan_load4_noabort'
+./Build/Kernel/././AK/OwnPtr.h:116: undefined reference to `__asan_handle_no_return'
+./Build/Kernel/././AK/NonnullOwnPtr.h:124: undefined reference to `__asan_load4_noabort'
+./Build/Kernel/././Kernel/VM/RangeAllocator.h:48: undefined reference to `__asan_load4_noabort'
+./Build/Kernel/././AK/NonnullOwnPtr.h:124: undefined reference to `__asan_load4_noabort'
+./Build/Kernel/././Kernel/VM/RangeAllocator.h:49: undefined reference to `__asan_load4_noabort'
+
+... snip ...
+</code></pre>
+<p>Looking at NetBSD's implementation of KASAN shows that they have common handler macros for these functions.</p>
+<p>Excerpt from <a href="https://github.com/NetBSD/src/blob/86e39537781864530a5ad72a7bfebfda434bd37e/sys/kern/subr_asan.c#L1182-L1202"><code>sys/kern/subr_asan.c</code></a>:</p>
+<pre><code class="language-cpp">#define ASAN_LOAD_STORE(size)                   \
+    void __asan_load##size(unsigned long);          \
+    void __asan_load##size(unsigned long addr)      \
+    {                           \
+        kasan_shadow_check(addr, size, false, __RET_ADDR);\
+    }                           \
+    void __asan_load##size##_noabort(unsigned long);    \
+    void __asan_load##size##_noabort(unsigned long addr)    \
+    {                           \
+        kasan_shadow_check(addr, size, false, __RET_ADDR);\
+    }                           \
+    void __asan_store##size(unsigned long);         \
+    void __asan_store##size(unsigned long addr)     \
+    {                           \
+        kasan_shadow_check(addr, size, true, __RET_ADDR);\
+    }                           \
+    void __asan_store##size##_noabort(unsigned long);   \
+    void __asan_store##size##_noabort(unsigned long addr)   \
+    {                           \
+        kasan_shadow_check(addr, size, true, __RET_ADDR);   \
+    }
+</code></pre>
+<p>I guess I'll need to stub out these symbols for serenity when I get time to work on this further.</p>
+<h1><a class="header" href="#12-29-2020-initial-setup-of-the-polarfire-soc-icicle-kit" id="12-29-2020-initial-setup-of-the-polarfire-soc-icicle-kit">12-29-2020: Initial Setup of the PolarFire SOC Icicle Kit</a></h1>
+<h2><a class="header" href="#introduction-2" id="introduction-2">Introduction</a></h2>
 <p>I picked up the PolarFire SOC Icicle Kit during the crowd  funding phase on <a href="https://www.crowdsupply.com/microchip/polarfire-soc-icicle-kit">Crowd Supply</a>
 I've been playing around with the hardware off and on since I got it,</p>
 <p><img src="polarfire/./icicle-kit.png" alt="image of the polarfire SOC board" /></p>
