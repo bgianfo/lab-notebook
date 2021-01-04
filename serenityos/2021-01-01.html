@@ -3,9 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Brian's Lab Notebook</title>
-        
-        <meta name="robots" content="noindex" />
+        <title>2021-01-01: Stack Canaries - Brian's Lab Notebook</title>
         
         
 
@@ -20,28 +18,28 @@
         <meta name="theme-color" content="#ffffff" />
 
         
-        <link rel="icon" href="favicon.svg">
+        <link rel="icon" href="../favicon.svg">
         
         
-        <link rel="shortcut icon" href="favicon.png">
+        <link rel="shortcut icon" href="../favicon.png">
         
-        <link rel="stylesheet" href="css/variables.css">
-        <link rel="stylesheet" href="css/general.css">
-        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
         
-        <link rel="stylesheet" href="css/print.css" media="print">
+        <link rel="stylesheet" href="../css/print.css" media="print">
         
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
         
-        <link rel="stylesheet" href="fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
         
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="highlight.css">
-        <link rel="stylesheet" href="tomorrow-night.css">
-        <link rel="stylesheet" href="ayu-highlight.css">
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
         
@@ -51,7 +49,7 @@
     <body>
         <!-- Provide site root to javascript -->
         <script type="text/javascript">
-            var path_to_root = "";
+            var path_to_root = "../";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "ayu" : "ayu";
         </script>
 
@@ -97,7 +95,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="background.html"><strong aria-hidden="true">1.</strong> Background</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Notes</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="notes/2020-12-29.html"><strong aria-hidden="true">2.1.</strong> 2020-12-29: Lab Notebook Setup</a></li><li class="chapter-item expanded "><a href="notes/2020-12-29-gpg-signing.html"><strong aria-hidden="true">2.2.</strong> 2020-12-29: Commit Signing</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> SerenityOS</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="serenityos/2021-01-02.html"><strong aria-hidden="true">3.1.</strong> 2021-01-02: KASAN Research</a></li><li class="chapter-item expanded "><a href="serenityos/2021-01-01.html"><strong aria-hidden="true">3.2.</strong> 2021-01-01: Stack Canaries</a></li><li class="chapter-item expanded "><a href="serenityos/2020-12-30.html"><strong aria-hidden="true">3.3.</strong> 2020-12-30: CodeQL Queries</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> PolarFire SOC Icicle</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="polarfire/2020-11-26.html"><strong aria-hidden="true">4.1.</strong> 2020-11-26: Initial Setup</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../background.html"><strong aria-hidden="true">1.</strong> Background</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Notes</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="../notes/2020-12-29.html"><strong aria-hidden="true">2.1.</strong> 2020-12-29: Lab Notebook Setup</a></li><li class="chapter-item expanded "><a href="../notes/2020-12-29-gpg-signing.html"><strong aria-hidden="true">2.2.</strong> 2020-12-29: Commit Signing</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> SerenityOS</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="../serenityos/2021-01-02.html"><strong aria-hidden="true">3.1.</strong> 2021-01-02: KASAN Research</a></li><li class="chapter-item expanded "><a href="../serenityos/2021-01-01.html" class="active"><strong aria-hidden="true">3.2.</strong> 2021-01-01: Stack Canaries</a></li><li class="chapter-item expanded "><a href="../serenityos/2020-12-30.html"><strong aria-hidden="true">3.3.</strong> 2020-12-30: CodeQL Queries</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> PolarFire SOC Icicle</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="../polarfire/2020-11-26.html"><strong aria-hidden="true">4.1.</strong> 2020-11-26: Initial Setup</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -133,7 +131,7 @@
 
                     <div class="right-buttons">
                         
-                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
                         
@@ -169,239 +167,8 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#lab-notebook-background" id="lab-notebook-background">Lab Notebook Background</a></h1>
-<p>Welcome to my lab notebook, where I keep my public working notes, and any
-tips or tricks that I discover.</p>
-<p>The idea for this &quot;lab notebook&quot; was inspired by:</p>
-<ul>
-<li><a href="https://twitter.com/whitequark">@whitequark</a> - <a href="https://lab.whitequark.org/">lab.whitequark.org</a></li>
-<li><a href="https://twitter.com/bitshiftmask">@bitshiftmask</a> - <a href="https://lab.jamesmunns.com/">lab.jamesmunns.com</a> </li>
-</ul>
-<p>It's built with <a href="https://github.com/rust-lang/mdBook">mdbook</a> and automatically
-published with <a href="https://github.com/marketplace/actions/mdbook-action">mdbook-action</a>.
-You can read more about how I setup the notebook in the <a href="./notes/2020-12-29.html">2020-12-19 - Lab Notebook Setup</a>
-note. The source is available at <a href="https://github.com/bgianfo/lab-notebook">bgianfo/lab-notebook</a>.
-Please feel free to send pull requests if you see anything that's incorrect!</p>
-<p>If you want to get in touch with me check out <a href="https://bjg.io/about/">bjg.io/about</a>.</p>
-<h1><a class="header" href="#12-29-2020-lab-notebook-setup" id="12-29-2020-lab-notebook-setup">12-29-2020: Lab Notebook Setup</a></h1>
+                        <h1><a class="header" href="#enabling-stack-canaries-for-serenityos" id="enabling-stack-canaries-for-serenityos">Enabling stack canaries for SerenityOS</a></h1>
 <h2><a class="header" href="#introduction" id="introduction">Introduction</a></h2>
-<p>I've noticed a few people whom I follow and admire online have started to keep lab notebooks.
-I first ran across the idea when I saw <a href="https://twitter.com/whitequark">@whitequark</a>'s notebook <a href="https://lab.whitequark.org/">lab.whitequark.org</a>,
-and then this evening I ran across <a href="https://twitter.com/bitshiftmask">@bitshiftmask</a>'s <a href="https://lab.jamesmunns.com/">lab.jamesmunns.com</a> by chance
-and saw they were doing a similar thing with <a href="https://github.com/rust-lang/mdBook">mdbook</a> which seems very easy to use and straight forward to setup and maintain.</p>
-<p>I've been on a personal knowledge management kick recently, and I've been playing whit <a href="https://obsidian.md/">obsidian.md</a> for maintaining a 'second brain'.
-The idea of a public lab notebook seems like an interesting idea that I want to play with. So this first post is going to be the process of setting this up.</p>
-<h2><a class="header" href="#boot-strapping-the-book" id="boot-strapping-the-book">Boot Strapping The Book</a></h2>
-<p>To get started with the notebook first I created a new GitHub repository <a href="https://github.com/bgianfo/lab-notebook/">github.com/bgianfo/lab-notebook</a>.
-Then I configured my lab notebook <code>mdbook</code> project just enough so that this page building.</p>
-<pre><code class="language-bash">C:\src\lab-notebook&gt;tree /A /F
-|   .gitignore
-|   book.toml
-|   README.md
-|
-\---src
-    |   SUMMARY.md
-    |
-    \---notes
-            2020-12-29.md
-</code></pre>
-<p>Once we have the shell of the project setup and can use <code>mdbook serve</code> to have the system automatically rebuild and refresh pages as we edit them:</p>
-<pre><code class="language-bash">C:\src\lab-notebook&gt;mdbook serve
-2020-12-29 03:02:15 [INFO] (mdbook::book): Book building has started
-2020-12-29 03:02:15 [INFO] (mdbook::book): Running the html backend
-2020-12-29 03:02:15 [INFO] (mdbook::cmd::serve): Serving on: http://localhost:3000
-2020-12-29 03:02:15 [INFO] (warp::server): Server::run; addr=[::1]:3000
-2020-12-29 03:02:15 [INFO] (warp::server): listening on http://[::1]:3000
-2020-12-29 03:02:15 [INFO] (mdbook::cmd::watch): Listening for changes...
-2020-12-29 03:02:22 [INFO] (mdbook::cmd::serve): Files changed: [&quot;notes\2020-12-29.md&quot;]
-2020-12-29 03:02:22 [INFO] (mdbook::cmd::serve): Building book...
-2020-12-29 03:02:22 [INFO] (mdbook::book): Book building has started
-2020-12-29 03:02:22 [INFO] (mdbook::book): Running the html backend
-</code></pre>
-<h2><a class="header" href="#publishing" id="publishing">Publishing</a></h2>
-<p>Now that we have the basics of the book building, I want to get the notebook
-published, and served off of my subdomain <a href="https://lab.bjg.io">lab.bjg.io</a> where
-nothing currently resides today. To make this as pain free as possible I was hoping
-to use <strong>github pages</strong> for this, the same as the rest of my site. When poking around
-I found the <a href="https://github.com/marketplace/actions/mdbook-action">mdbook-action</a>
-which allows you to painlessly publish your mdbook from a github actions workflow.</p>
-<p>Following the documentation I was able to create a <a href="https://github.com/bgianfo/lab-notebook/commit/324781fae79572ea954d9bb5f8bd103b5c808e1b#diff-28802fbf11c83a2eee09623fb192785e7ca92a3f40602a517c011b947a1822d3">simple workflow (324781fae)</a>:</p>
-<pre><code class="language-yaml">name: Publish To GitHub Pages
-
-on:
-  push:
-    branches:
-      - master
-
-jobs:
-  deploy:
-    runs-on: ubuntu-18.04
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Setup mdBook
-        uses: peaceiris/actions-mdbook@v1
-        with:
-          mdbook-version: 'latest'
-
-      - run: mdbook build
-
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./book
-</code></pre>
-<p>I looked for signs that the action ran, and nothing... so double checking the pipeline
-I realized that GitHub created the new default branch as <code>main</code>, not <code>master</code>. So our
-pipeline wasn't running because we are listening for push events on the wrong branch.
-Announcement: <a href="https://github.com/github/renaming">https://github.com/github/renaming</a></p>
-<p>So we need one small change to our pipeline to fix things up:</p>
-<pre><code class="language-diff">commit 78fd8a787cf6a2f49eca8e402eb6aede9caad174
-Author: Brian Gianforcaro &lt;b.gianfo@gmail.com&gt;
-Date:   Tue Dec 29 03:17:52 2020 -0800
-
-    CI: Fix to modern branch name
-
-diff --git a/.github/workflows/deploy.yml b/.github/workflows/deploy.yml
-index cf0fa96..7707376 100644
---- a/.github/workflows/deploy.yml
-+++ b/.github/workflows/deploy.yml
-@@ -3,7 +3,7 @@ name: Publish To GitHub Pages
- on:
-   push:
-     branches:
--      - master
-+      - main
-</code></pre>
-<p>That worked and automatically created a new <code>gh-pages</code> branch in the repository.
-In the GitHub repository settings I was then able to configure <strong>github pages</strong>
-to use the new gh-pages branch. See: <a href="https://docs.github.com/en/free-pro-team@latest/github/working-with-github-pages/managing-a-custom-domain-for-your-github-pages-site">GitHub Docs: Managing a custom domain for your GitHub Pages site</a></p>
-<p>I then configured github pages to publish under a custom domain (lab.bjg.io), this
-will automatically create a new <a href="https://github.com/bgianfo/lab-notebook/commit/5a85fb76a5d87e720913c3ae8d92be26387abf1d">CNAME</a>
-file in the root of your project. Next I  went to by DNS provider and added a new 
-<strong>CNAME</strong> record to my domain configuration pointing <code>lab.bjg.io -&gt; bgianfo.github.io</code>.</p>
-<p>And Voila! It Alive!</p>
-<p>Well kind of ... As soon as I pushed new changes, the sub domain no longer works.
-That is very strange?</p>
-<p>After some digging in the CI logs, I realized that the <code>actions-gh-pages</code> action was
-deleting the CNAME file in the gh-pages branch on every push, breaking the configuration.
-I looked through the docs for the gh-pages action and found they have their own
-option for auto generating the CNAME file from within the action. So I made a
-small change to use that option:</p>
-<pre><code class="language-diff">commit 2f5c50ad033f4db4401ba7ddf427306ed326ab2e
-Author: Brian Gianforcaro &lt;b.gianfo@gmail.com&gt;
-Date:   Tue Dec 29 04:10:11 2020 -0800
-
-    CI: Configure CNAME when generating html and publishing to gh-pages
-
-diff --git a/.github/workflows/deploy.yml b/.github/workflows/deploy.yml
-index 7707376..1364391 100644
---- a/.github/workflows/deploy.yml
-+++ b/.github/workflows/deploy.yml
-@@ -23,3 +23,4 @@ jobs:
-         with:
-           github_token: ${{ secrets.GITHUB_TOKEN }}
-           publish_dir: ./book
-+          cname: lab.bjg.io
-</code></pre>
-<h1><a class="header" href="#git-commit-signing-with-keybase" id="git-commit-signing-with-keybase">Git Commit Signing with Keybase</a></h1>
-<p>I already have a <a href="https://keybase.io/bjg">keybase</a> account.
-I've been interested in getting git commit signing setup with my keybase pgp key.
-I quickly found a nice guide that worked well.
-See: <a href="https://meedamian.com/post/keybase-signed-github/">https://meedamian.com/post/keybase-signed-github</a></p>
-<p>After following the guide, git now shows my commits as signed.
-Example:</p>
-<pre><code class="language-diff">bgianf@LMAO:~/src/lab-notebook/src$ git log --show-signature -1
-commit be372efa95c64ef4a71e2b06e69baf47d275923f (HEAD -&gt; main, origin/main, origin/HEAD)
-gpg: Signature made Tue Dec 29 21:14:34 2020 PST
-gpg:                using RSA key 899C11E2EEAA2EEE43775D148802D4B232E81AFA
-gpg: checking the trustdb
-gpg: marginals needed: 3  completes needed: 1  trust model: pgp
-gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
-gpg: Good signature from &quot;Brian Gianforcaro (http://bjg.io) &lt;b.gianfo@gmail.com&gt;&quot; [ultimate]
-gpg:                 aka &quot;keybase.io/bjg &lt;bjg@keybase.io&gt;&quot; [ultimate]
-Author: Brian Gianforcaro &lt;b.gianfo@gmail.com&gt;
-Date:   Tue Dec 29 21:12:47 2020 -0800
-
-    Notes: Add note about signing commits with keybase pgp keys
-</code></pre>
-<p>GitHub displays these with the <strong>VERIFIED</strong> qualifier.</p>
-<p>See: <a href="https://github.com/bgianfo/lab-notebook/commit/be372efa95c64ef4a71e2b06e69baf47d275923f">https://github.com/bgianfo/lab-notebook/commit/be372efa95c64ef4a71e2b06e69baf47d275923f</a></p>
-<p>Nice!</p>
-<h1><a class="header" href="#research-into-kasan-in-serenityos" id="research-into-kasan-in-serenityos">Research into KASAN in SerenityOS</a></h1>
-<h2><a class="header" href="#introduction-1" id="introduction-1">Introduction</a></h2>
-<p>Kernel Address Sanitizer (KASAN) is a dynamic analysis technology to find
-dynamic memory errors in OS Kernels. It's based on instrumentation injected
-by the compiler which checks all memory accesses made during execution.</p>
-<p>I'm interested in enabling KASAN for <a href="https://github.com/SerenityOS/serenity">SerenityOS</a></p>
-<p><strong>Links:</strong></p>
-<ul>
-<li><a href="https://www.kernel.org/doc/html/latest/dev-tools/kasan.html">Linux KASAN Docs</a></li>
-<li><a href="https://events.static.linuxfound.org/sites/events/files/slides/LinuxCon%20North%20America%202015%20KernelAddressSanitizer.pdf">Linux KASAN Presentation</a></li>
-<li><a href="https://lwn.net/Articles/612153/">LWN &quot;The kernel address santizer&quot;</a></li>
-<li><a href="https://blog.netbsd.org/tnf/entry/kernel_address_sanitizer_part_3">NetBSD KASAN Blog</a></li>
-<li><a href="https://netbsd.org/%7Ekamil/eurobsdcon2018_ksanitizers.html">NetBSD KASAN Presentation</a></li>
-</ul>
-<p>Here's the NetBSD presentation:</p>
-<iframe align="center" width="900" height="535" src="https://www.youtube-nocookie.com/embed/capbD_aRz40" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-<h2><a class="header" href="#lets-start-hacking" id="lets-start-hacking">Lets start hacking!</a></h2>
-<p>So my first attempt at doing anything was to just throw in <code>-fsanitize=kernel-address</code> and see
-what falls out. Here's the first diff:</p>
-<pre><code class="language-diff">diff --git a/Kernel/CMakeLists.txt b/Kernel/CMakeLists.txt
-index 451060bf2..c7d9e5bec 100644
---- a/Kernel/CMakeLists.txt
-+++ b/Kernel/CMakeLists.txt
-@@ -268,6 +268,7 @@ set(CMAKE_CXX_FLAGS &quot;${CMAKE_CXX_FLAGS} -pie -fPIE -fno-rtti -ffreestanding -fbu
- set(CMAKE_CXX_FLAGS &quot;${CMAKE_CXX_FLAGS} -mno-80387 -mno-mmx -mno-sse -mno-sse2&quot;)
- set(CMAKE_CXX_FLAGS &quot;${CMAKE_CXX_FLAGS} -fno-asynchronous-unwind-tables&quot;)
- set(CMAKE_CXX_FLAGS &quot;${CMAKE_CXX_FLAGS} -fstack-protector-strong&quot;)
-+set(CMAKE_CXX_FLAGS &quot;${CMAKE_CXX_FLAGS} -fsanitize=kernel-address&quot;)
- set(CMAKE_CXX_FLAGS &quot;${CMAKE_CXX_FLAGS} -nostdlib -nostdinc -nostdinc++&quot;)
-
- add_link_options(LINKER:-T ${CMAKE_CURRENT_BINARY_DIR}/linker.ld -nostdlib)
-</code></pre>
-<p>We compile successfully with the new flag, but we fail to link.
-The linker complains about about a bunch of missing <strong>__asan_load{n}_noabort</strong> functions.</p>
-<pre><code>... snip ...
-./Build/Kernel/././AK/OwnPtr.h:140: undefined reference to `__asan_load4_noabort'
-./Build/Kernel/././AK/NonnullOwnPtr.h:124: undefined reference to `__asan_load4_noabort'
-./Build/Kernel/././Kernel/VM/RangeAllocator.h:48: undefined reference to `__asan_load4_noabort'
-./Build/Kernel/././AK/OwnPtr.h:116: undefined reference to `__asan_handle_no_return'
-./Build/Kernel/././AK/NonnullOwnPtr.h:124: undefined reference to `__asan_load4_noabort'
-./Build/Kernel/././Kernel/VM/RangeAllocator.h:48: undefined reference to `__asan_load4_noabort'
-./Build/Kernel/././AK/NonnullOwnPtr.h:124: undefined reference to `__asan_load4_noabort'
-./Build/Kernel/././Kernel/VM/RangeAllocator.h:49: undefined reference to `__asan_load4_noabort'
-
-... snip ...
-</code></pre>
-<p>Looking at NetBSD's implementation of KASAN shows that they have common handler macros for these functions.</p>
-<p>Excerpt from <a href="https://github.com/NetBSD/src/blob/86e39537781864530a5ad72a7bfebfda434bd37e/sys/kern/subr_asan.c#L1182-L1202"><code>sys/kern/subr_asan.c</code></a>:</p>
-<pre><code class="language-cpp">#define ASAN_LOAD_STORE(size)                   \
-    void __asan_load##size(unsigned long);          \
-    void __asan_load##size(unsigned long addr)      \
-    {                           \
-        kasan_shadow_check(addr, size, false, __RET_ADDR);\
-    }                           \
-    void __asan_load##size##_noabort(unsigned long);    \
-    void __asan_load##size##_noabort(unsigned long addr)    \
-    {                           \
-        kasan_shadow_check(addr, size, false, __RET_ADDR);\
-    }                           \
-    void __asan_store##size(unsigned long);         \
-    void __asan_store##size(unsigned long addr)     \
-    {                           \
-        kasan_shadow_check(addr, size, true, __RET_ADDR);\
-    }                           \
-    void __asan_store##size##_noabort(unsigned long);   \
-    void __asan_store##size##_noabort(unsigned long addr)   \
-    {                           \
-        kasan_shadow_check(addr, size, true, __RET_ADDR);   \
-    }
-</code></pre>
-<p>I guess I'll need to stub out these symbols for serenity when I get time to work on this further.</p>
-<h1><a class="header" href="#enabling-stack-canaries-for-serenityos" id="enabling-stack-canaries-for-serenityos">Enabling stack canaries for SerenityOS</a></h1>
-<h2><a class="header" href="#introduction-2" id="introduction-2">Introduction</a></h2>
 <p>I've been looking into beefing up static and dynamic analysis available in
 <a href="http://www.serenityos.org">SerenityOS</a>. One of the most basic things that
 wasn't enabled yet was GCC's <code>-fstack-protector</code> feature, which automatically
@@ -815,112 +582,21 @@ Shell: Job 1 (/usr/Tests/LibC/stack-smash) Aborted
 <h2><a class="header" href="#final-pr" id="final-pr">Final PR</a></h2>
 <p>The resulting pull request is here: 
 <a href="https://github.com/SerenityOS/serenity/pull/4726">Build + LibC: Enable -fstack-protector-strong in user space</a></p>
-<h1><a class="header" href="#writing-codeql-queries-for-serenityos" id="writing-codeql-queries-for-serenityos">Writing CodeQL Queries for SerenityOS</a></h1>
-<p>I previously added CodeQL static analysis support to the SerenityOS build workflow.
-<a href="https://github.com/SerenityOS/serenity/pull/4175">https://github.com/SerenityOS/serenity/pull/4175</a></p>
-<p>Unfortunately you there doesn't seem to be a way to consume the CodeQL database that as part of that
-build pipline on GitHub.
-This seems like a bit of an oversight, and I have raised an issue here: <a href="https://github.com/github/codeql-action/issues/355">https://github.com/github/codeql-action/issues/355</a></p>
-<p>To work around that we will need to create our own database so we can write some custom CodeQL queries.</p>
-<p><strong>Here are the steps I put together:</strong></p>
-<ol>
-<li>
-<p>Setup a clone of the VSCode Starter Workspace (<a href="https://codeql.github.com/docs/codeql-for-visual-studio-code/setting-up-codeql-in-visual-studio-code/#using-the-starter-workspace">docs</a>)</p>
-<pre><code class="language-bash">$ git clone https://github.com/github/vscode-codeql-starter.git
-$ cd vscode-codeql-starter
-$ git submodule update --init --remote
-</code></pre>
-</li>
-<li>
-<p>Build a codeql database for serenity OS (<a href="https://codeql.github.com/docs/codeql-cli/creating-codeql-databases/">docs</a>):</p>
-<pre><code class="language-bash">$ codeql database create -l cpp -s /home/bgianf/src/serenity -c &quot;make -j -C /home/bgianf/src/serenity/BuildMake&quot; ~/serenity-codeql
-</code></pre>
-</li>
-<li>
-<p>Install the VS Code CodeQL extension (<a href="https://marketplace.visualstudio.com/items?itemName=GitHub.vscode-codeql">docs</a>)</p>
-</li>
-<li>
-<p>Configure the VS Code CodeQL extension to point to your new database (<code>~/serenityy-codeql</code>)</p>
-</li>
-<li>
-<p>Open the <code>vscode-codeql-starter</code> workspace in VS Code.</p>
-</li>
-<li>
-<p>Open the <code>cpp/example.ql</code> query and start writing queries and executing them against the database.</p>
-<p>This simple example finds all classes in the <code>AK</code> standard library in SerenityOS:</p>
-<pre><code class="language-python">import cpp
-
-from Class c
-where c.getQualifiedName().matches(&quot;AK::%&quot;)
-select base.getQualifiedName()
-
-</code></pre>
-</li>
-</ol>
-<h1><a class="header" href="#12-29-2020-initial-setup-of-the-polarfire-soc-icicle-kit" id="12-29-2020-initial-setup-of-the-polarfire-soc-icicle-kit">12-29-2020: Initial Setup of the PolarFire SOC Icicle Kit</a></h1>
-<h2><a class="header" href="#introduction-3" id="introduction-3">Introduction</a></h2>
-<p>I picked up the PolarFire SOC Icicle Kit during the crowd  funding phase on <a href="https://www.crowdsupply.com/microchip/polarfire-soc-icicle-kit">Crowd Supply</a>
-I've been playing around with the hardware off and on since I got it,</p>
-<p><img src="polarfire/./icicle-kit.png" alt="image of the polarfire SOC board" /></p>
-<h2><a class="header" href="#useful-links" id="useful-links">Useful Links:</a></h2>
-<p>MicroChip Docs:</p>
-<ul>
-<li>
-<p><a href="https://www.microsemi.com/products/fpga-soc/polarfire-soc-icicle-quick-start-guide#overview">MicroChip: PolarFire SoC Icicle Kit Quick Start Guide</a></p>
-</li>
-<li>
-<p><a href="https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/boards/mpfs-icicle-kit-es/icicle-kit-sw-developer-guide/icicle-kit-sw-developer-guide.md">GitHub: Icicle Kit Software Developer Guide</a></p>
-</li>
-<li>
-<p><a href="https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/boards/mpfs-icicle-kit-es/updating-icicle-kit/updating-icicle-kit-design-and-linux.md">GitHub: Updating PolarFire SOC Icicle-Kit FPGA Design and Linux Image</a></p>
-</li>
-</ul>
-<p>seL4 Port:</p>
-<ul>
-<li>
-<p><a href="https://dornerworks.com/blog/sel4-on-polarfire-soc">seL4 on the PolarFire SOC</a></p>
-</li>
-<li>
-<p><a href="https://dornerworks.com/microchip/polarfire-soc/sel4-test-instructions/">seL4 Test on the PolarFire SOC</a></p>
-</li>
-</ul>
-<p>Forums:</p>
-<ul>
-<li><a href="https://exchange.riscv.org/c/polarfiresoc-icicle">RISC-V Exchange</a></li>
-</ul>
-<h2><a class="header" href="#script-for-terminal-attach" id="script-for-terminal-attach">Script for terminal attach</a></h2>
-<p>After attaching with <a href="https://en.wikipedia.org/wiki/Minicom">minicom</a> manually a few times,
-I eventually found the script below, it comes from the <a href="https://dornerworks.com/microchip/polarfire-soc/sel4-test-instructions/">seL4 Test o the PolarFire SOC</a>
-documentation. It works pretty well, and uses <a href="https://github.com/tio/tio">tio</a> (which I find
-much more pleasant to work with) instead of <strong>minicom</strong>.</p>
-<pre><code class="language-bash">#!/bin/bash
-tmux new-session -d -s 'polarfire-serial-dashboard'
-tmux split-window -v
-tmux split-window -h
-tmux select-pane -t 0
-tmux split-window -h
-tmux respawn-pane -t0 -k &quot;tio /dev/ttyUSB0&quot;
-tmux respawn-pane -t1 -k &quot;tio /dev/ttyUSB1&quot;
-tmux respawn-pane -t2 -k &quot;tio /dev/ttyUSB2&quot;
-tmux respawn-pane -t3 -k &quot;tio /dev/ttyUSB3&quot;
-tmux select-layout tiled
-tmux set -g mouse on
-tmux attach-session -t 'polarfire-serial-dashboard'
-</code></pre>
-<p>I've also setup the scripts as a gist here: <a href="https://gist.github.com/bgianfo/24a1623953a8d45cd72e918dd80510b3">PolarFire SOC Icicle Gists</a></p>
-<h2><a class="header" href="#first-boot" id="first-boot">First Boot</a></h2>
-<p>After getting everything figured out I was able to boot, attached to all of
-the UART serial consoles attached, and interact with the linux login.</p>
-<p><img src="polarfire/./initial-boot.png" alt="first boot" /></p>
-<p>I was a little excited at this point, so I announced my accomplishment to the world: </p>
-<blockquote class="twitter-tweet" data-theme="dark"><p lang="en" dir="ltr">Finally got around to playing with my Polarfire SoC Icicle Kit. Screenshot is minicom attached to all 4 (!) UART serial debug consoles. riscv64 running linux for now, want to play with the seL4 port though. Maybe an attempt to port <a href="https://twitter.com/hashtag/serenityos?src=hash&amp;ref_src=twsrc%5Etfw">#serenityos</a>? 😃 <a href="https://twitter.com/hashtag/riscv?src=hash&amp;ref_src=twsrc%5Etfw">#riscv</a> <a href="https://twitter.com/hashtag/polarfire?src=hash&amp;ref_src=twsrc%5Etfw">#polarfire</a> <a href="https://t.co/q9EF98NhF3">pic.twitter.com/q9EF98NhF3</a></p>&mdash; Brian Gianforcaro (@bgianf) <a href="https://twitter.com/bgianf/status/1331864239842070528?ref_src=twsrc%5Etfw">November 26, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script> 
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
+                            <a rel="prev" href="../serenityos/2021-01-02.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
 
+                        
+                            <a rel="next" href="../serenityos/2020-12-30.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
                         
 
                         <div style="clear: both"></div>
@@ -930,7 +606,15 @@ the UART serial consoles attached, and interact with the linux login.</p>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
+                    <a rel="prev" href="../serenityos/2021-01-02.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
 
+                
+                    <a rel="next" href="../serenityos/2020-12-30.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
                 
             </nav>
 
@@ -951,26 +635,18 @@ the UART serial consoles attached, and interact with the linux login.</p>
         
 
         
-        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
         
 
-        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
-        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
 
         <!-- Custom JS scripts -->
         
 
-        
-        
-        <script type="text/javascript">
-        window.addEventListener('load', function() {
-            window.setTimeout(window.print, 100);
-        });
-        </script>
-        
         
 
     </body>
