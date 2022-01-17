@@ -3,50 +3,29 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Brian's Lab Notebook</title>
-        
+        <title>Brian&#x27;s Lab Notebook</title>
         <meta name="robots" content="noindex" />
-        
-        
-
-
         <!-- Custom HTML head -->
-        
-
-
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff" />
 
-        
         <link rel="icon" href="favicon.svg">
-        
-        
         <link rel="shortcut icon" href="favicon.png">
-        
         <link rel="stylesheet" href="css/variables.css">
         <link rel="stylesheet" href="css/general.css">
         <link rel="stylesheet" href="css/chrome.css">
-        
         <link rel="stylesheet" href="css/print.css" media="print">
-        
-
         <!-- Fonts -->
         <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
-        
         <link rel="stylesheet" href="fonts/fonts.css">
-        
-
         <!-- Highlight.js Stylesheets -->
         <link rel="stylesheet" href="highlight.css">
         <link rel="stylesheet" href="tomorrow-night.css">
         <link rel="stylesheet" href="ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
-        
-
-        
     </head>
     <body>
         <!-- Provide site root to javascript -->
@@ -105,7 +84,6 @@
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
-                
                 <div id="menu-bar-hover-placeholder"></div>
                 <div id="menu-bar" class="menu-bar sticky bordered">
                     <div class="left-buttons">
@@ -122,33 +100,26 @@
                             <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu (default)</button></li>
                         </ul>
-                        
                         <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
                             <i class="fa fa-search"></i>
                         </button>
-                        
                     </div>
 
-                    <h1 class="menu-title">Brian's Lab Notebook</h1>
+                    <h1 class="menu-title">Brian&#x27;s Lab Notebook</h1>
 
                     <div class="right-buttons">
-                        
                         <a href="print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
-                        
-                        
                         <a href="http://github.com/bgianfo/lab-notebook" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
-                        
                     </div>
                 </div>
 
-                
                 <div id="search-wrapper" class="hidden">
                     <form id="searchbar-outer" class="searchbar-outer">
-                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
                     </form>
                     <div id="searchresults-outer" class="searchresults-outer hidden">
                         <div id="searchresults-header" class="searchresults-header"></div>
@@ -156,8 +127,6 @@
                         </ul>
                     </div>
                 </div>
-                
-
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script type="text/javascript">
                     document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
@@ -169,7 +138,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#lab-notebook-background" id="lab-notebook-background">Lab Notebook Background</a></h1>
+                        <h1 id="lab-notebook-background"><a class="header" href="#lab-notebook-background">Lab Notebook Background</a></h1>
 <p>Welcome to my lab notebook, where I keep my public working notes, and any
 tips or tricks that I discover.</p>
 <p>The idea for this &quot;lab notebook&quot; was inspired by:</p>
@@ -183,15 +152,15 @@ You can read more about how I setup the notebook in the <a href="./notes/2020-12
 note. The source is available at <a href="https://github.com/bgianfo/lab-notebook">bgianfo/lab-notebook</a>.
 Please feel free to send pull requests if you see anything that's incorrect!</p>
 <p>If you want to get in touch with me check out <a href="https://bjg.io/about/">bjg.io/about</a>.</p>
-<h1><a class="header" href="#12-29-2020-lab-notebook-setup" id="12-29-2020-lab-notebook-setup">12-29-2020: Lab Notebook Setup</a></h1>
-<h2><a class="header" href="#introduction" id="introduction">Introduction</a></h2>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="12-29-2020-lab-notebook-setup"><a class="header" href="#12-29-2020-lab-notebook-setup">12-29-2020: Lab Notebook Setup</a></h1>
+<h2 id="introduction"><a class="header" href="#introduction">Introduction</a></h2>
 <p>I've noticed a few people whom I follow and admire online have started to keep lab notebooks.
 I first ran across the idea when I saw <a href="https://twitter.com/whitequark">@whitequark</a>'s notebook <a href="https://lab.whitequark.org/">lab.whitequark.org</a>,
 and then this evening I ran across <a href="https://twitter.com/bitshiftmask">@bitshiftmask</a>'s <a href="https://lab.jamesmunns.com/">lab.jamesmunns.com</a> by chance
 and saw they were doing a similar thing with <a href="https://github.com/rust-lang/mdBook">mdbook</a> which seems very easy to use and straight forward to setup and maintain.</p>
 <p>I've been on a personal knowledge management kick recently, and I've been playing whit <a href="https://obsidian.md/">obsidian.md</a> for maintaining a 'second brain'.
 The idea of a public lab notebook seems like an interesting idea that I want to play with. So this first post is going to be the process of setting this up.</p>
-<h2><a class="header" href="#boot-strapping-the-book" id="boot-strapping-the-book">Boot Strapping The Book</a></h2>
+<h2 id="boot-strapping-the-book"><a class="header" href="#boot-strapping-the-book">Boot Strapping The Book</a></h2>
 <p>To get started with the notebook first I created a new GitHub repository <a href="https://github.com/bgianfo/lab-notebook/">github.com/bgianfo/lab-notebook</a>.
 Then I configured my lab notebook <code>mdbook</code> project just enough so that this page building.</p>
 <pre><code class="language-bash">C:\src\lab-notebook&gt;tree /A /F
@@ -218,7 +187,7 @@ Then I configured my lab notebook <code>mdbook</code> project just enough so tha
 2020-12-29 03:02:22 [INFO] (mdbook::book): Book building has started
 2020-12-29 03:02:22 [INFO] (mdbook::book): Running the html backend
 </code></pre>
-<h2><a class="header" href="#publishing" id="publishing">Publishing</a></h2>
+<h2 id="publishing"><a class="header" href="#publishing">Publishing</a></h2>
 <p>Now that we have the basics of the book building, I want to get the notebook
 published, and served off of my subdomain <a href="https://lab.bjg.io">lab.bjg.io</a> where
 nothing currently resides today. To make this as pain free as possible I was hoping
@@ -305,7 +274,7 @@ index 7707376..1364391 100644
            publish_dir: ./book
 +          cname: lab.bjg.io
 </code></pre>
-<h1><a class="header" href="#git-commit-signing-with-keybase" id="git-commit-signing-with-keybase">Git Commit Signing with Keybase</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="git-commit-signing-with-keybase"><a class="header" href="#git-commit-signing-with-keybase">Git Commit Signing with Keybase</a></h1>
 <p>I already have a <a href="https://keybase.io/bjg">keybase</a> account.
 I've been interested in getting git commit signing setup with my keybase pgp key.
 I quickly found a nice guide that worked well.
@@ -329,8 +298,8 @@ Date:   Tue Dec 29 21:12:47 2020 -0800
 <p>GitHub displays these with the <strong>VERIFIED</strong> qualifier.</p>
 <p>See: <a href="https://github.com/bgianfo/lab-notebook/commit/be372efa95c64ef4a71e2b06e69baf47d275923f">https://github.com/bgianfo/lab-notebook/commit/be372efa95c64ef4a71e2b06e69baf47d275923f</a></p>
 <p>Nice!</p>
-<h1><a class="header" href="#research-into-kasan-in-serenityos" id="research-into-kasan-in-serenityos">Research into KASAN in SerenityOS</a></h1>
-<h2><a class="header" href="#introduction-1" id="introduction-1">Introduction</a></h2>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="research-into-kasan-in-serenityos"><a class="header" href="#research-into-kasan-in-serenityos">Research into KASAN in SerenityOS</a></h1>
+<h2 id="introduction-1"><a class="header" href="#introduction-1">Introduction</a></h2>
 <p>Kernel Address Sanitizer (KASAN) is a dynamic analysis technology to find
 dynamic memory errors in OS Kernels. It's based on instrumentation injected
 by the compiler which checks all memory accesses made during execution.</p>
@@ -345,7 +314,7 @@ by the compiler which checks all memory accesses made during execution.</p>
 </ul>
 <p>Here's the NetBSD presentation:</p>
 <iframe align="center" width="900" height="535" src="https://www.youtube-nocookie.com/embed/capbD_aRz40" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-<h2><a class="header" href="#lets-start-hacking" id="lets-start-hacking">Lets start hacking!</a></h2>
+<h2 id="lets-start-hacking"><a class="header" href="#lets-start-hacking">Lets start hacking!</a></h2>
 <p>So my first attempt at doing anything was to just throw in <code>-fsanitize=kernel-address</code> and see
 what falls out. Here's the first diff:</p>
 <pre><code class="language-diff">diff --git a/Kernel/CMakeLists.txt b/Kernel/CMakeLists.txt
@@ -400,15 +369,15 @@ The linker complains about about a bunch of missing <strong>__asan_load{n}_noabo
     }
 </code></pre>
 <p>I guess I'll need to stub out these symbols for serenity when I get time to work on this further.</p>
-<h1><a class="header" href="#enabling-stack-canaries-for-serenityos" id="enabling-stack-canaries-for-serenityos">Enabling stack canaries for SerenityOS</a></h1>
-<h2><a class="header" href="#introduction-2" id="introduction-2">Introduction</a></h2>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="enabling-stack-canaries-for-serenityos"><a class="header" href="#enabling-stack-canaries-for-serenityos">Enabling stack canaries for SerenityOS</a></h1>
+<h2 id="introduction-2"><a class="header" href="#introduction-2">Introduction</a></h2>
 <p>I've been looking into beefing up static and dynamic analysis available in
 <a href="http://www.serenityos.org">SerenityOS</a>. One of the most basic things that
 wasn't enabled yet was GCC's <code>-fstack-protector</code> feature, which automatically
 inserts a <a href="https://en.wikipedia.org/wiki/Stack_buffer_overflow#Stack_canaries">stack canary</a>
 in the epilog of all functions.</p>
 <p><a href="https://wiki.osdev.org/Stack_Smashing_Protector">osdev-wiki: Stack Smashing Protector</a></p>
-<h2><a class="header" href="#which-variant-to-use" id="which-variant-to-use">Which variant to use?</a></h2>
+<h2 id="which-variant-to-use"><a class="header" href="#which-variant-to-use">Which variant to use?</a></h2>
 <p>There are three different variants of <code>-fstack-protector</code>, each with different
 pros and cons. <a href="https://twitter.com/kees_cook">Kees Cook</a> has a nice writeup on
 the specifics of <code>-fstack-protector-strong</code> and it's design on his <a href="https://outflux.net/blog/archives/2014/01/27/fstack-protector-strong/">blog</a>.</p>
@@ -435,7 +404,7 @@ has a nice overview of the different variants of <code>-fstack-protector</code> 
 </code></pre>
 <p>It appears to me that <code>-fstack-protector-strong</code> would be great compromise for
 Serenity OS.</p>
-<h2><a class="header" href="#bootstrapping-the-implementation" id="bootstrapping-the-implementation">Bootstrapping the Implementation</a></h2>
+<h2 id="bootstrapping-the-implementation"><a class="header" href="#bootstrapping-the-implementation">Bootstrapping the Implementation</a></h2>
 <p>The actual change to the build system is (of course) very simple:</p>
 <pre><code class="language-diff">diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 7597e97fab..df039d3f82 100644
@@ -532,7 +501,7 @@ index 70443404e1..c23785a02e 100644
  
  __END_DECLS
 </code></pre>
-<h2><a class="header" href="#getting-sidetracked-with-linking" id="getting-sidetracked-with-linking">Getting Sidetracked with Linking</a></h2>
+<h2 id="getting-sidetracked-with-linking"><a class="header" href="#getting-sidetracked-with-linking">Getting Sidetracked with Linking</a></h2>
 <p>Compiling again with the new <code>__stack_chk_fail_local</code> implementation available
 in <code>LibC</code>, we surprisingly failed again with the same error. On closer inspection
 it's actually slightly different, we successfully linked <code>LibC</code> but now we are
@@ -642,7 +611,7 @@ index 3366957d5d..971880ca00 100644
  add_dependencies(LibC LibM)
 </code></pre>
 <p>With these changes the system now compiles and links cleanly!</p>
-<h2><a class="header" href="#testing" id="testing">Testing</a></h2>
+<h2 id="testing"><a class="header" href="#testing">Testing</a></h2>
 <p>Now that we have the system compiling, lets write test program to make sure we
 can actually crash the program when a stack smash is detected. The program should
 overwrite a buffer on the stack:</p>
@@ -812,10 +781,10 @@ Userland/Tests/LibC/stack-smash:     file format elf32-i386
 Error: Stack protector failure, stack smashing detected!
 Shell: Job 1 (/usr/Tests/LibC/stack-smash) Aborted
 </code></pre>
-<h2><a class="header" href="#final-pr" id="final-pr">Final PR</a></h2>
+<h2 id="final-pr"><a class="header" href="#final-pr">Final PR</a></h2>
 <p>The resulting pull request is here: 
 <a href="https://github.com/SerenityOS/serenity/pull/4726">Build + LibC: Enable -fstack-protector-strong in user space</a></p>
-<h1><a class="header" href="#writing-codeql-queries-for-serenityos" id="writing-codeql-queries-for-serenityos">Writing CodeQL Queries for SerenityOS</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="writing-codeql-queries-for-serenityos"><a class="header" href="#writing-codeql-queries-for-serenityos">Writing CodeQL Queries for SerenityOS</a></h1>
 <p>I previously added CodeQL static analysis support to the SerenityOS build workflow.
 <a href="https://github.com/SerenityOS/serenity/pull/4175">https://github.com/SerenityOS/serenity/pull/4175</a></p>
 <p>Unfortunately you there doesn't seem to be a way to consume the CodeQL database that as part of that
@@ -857,12 +826,12 @@ select base.getQualifiedName()
 </code></pre>
 </li>
 </ol>
-<h1><a class="header" href="#12-29-2020-initial-setup-of-the-polarfire-soc-icicle-kit" id="12-29-2020-initial-setup-of-the-polarfire-soc-icicle-kit">12-29-2020: Initial Setup of the PolarFire SOC Icicle Kit</a></h1>
-<h2><a class="header" href="#introduction-3" id="introduction-3">Introduction</a></h2>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="12-29-2020-initial-setup-of-the-polarfire-soc-icicle-kit"><a class="header" href="#12-29-2020-initial-setup-of-the-polarfire-soc-icicle-kit">12-29-2020: Initial Setup of the PolarFire SOC Icicle Kit</a></h1>
+<h2 id="introduction-3"><a class="header" href="#introduction-3">Introduction</a></h2>
 <p>I picked up the PolarFire SOC Icicle Kit during the crowd  funding phase on <a href="https://www.crowdsupply.com/microchip/polarfire-soc-icicle-kit">Crowd Supply</a>
 I've been playing around with the hardware off and on since I got it,</p>
 <p><img src="polarfire/./icicle-kit.png" alt="image of the polarfire SOC board" /></p>
-<h2><a class="header" href="#useful-links" id="useful-links">Useful Links:</a></h2>
+<h2 id="useful-links"><a class="header" href="#useful-links">Useful Links:</a></h2>
 <p>MicroChip Docs:</p>
 <ul>
 <li>
@@ -888,7 +857,7 @@ I've been playing around with the hardware off and on since I got it,</p>
 <ul>
 <li><a href="https://exchange.riscv.org/c/polarfiresoc-icicle">RISC-V Exchange</a></li>
 </ul>
-<h2><a class="header" href="#script-for-terminal-attach" id="script-for-terminal-attach">Script for terminal attach</a></h2>
+<h2 id="script-for-terminal-attach"><a class="header" href="#script-for-terminal-attach">Script for terminal attach</a></h2>
 <p>After attaching with <a href="https://en.wikipedia.org/wiki/Minicom">minicom</a> manually a few times,
 I eventually found the script below, it comes from the <a href="https://dornerworks.com/microchip/polarfire-soc/sel4-test-instructions/">seL4 Test o the PolarFire SOC</a>
 documentation. It works pretty well, and uses <a href="https://github.com/tio/tio">tio</a> (which I find
@@ -908,7 +877,7 @@ tmux set -g mouse on
 tmux attach-session -t 'polarfire-serial-dashboard'
 </code></pre>
 <p>I've also setup the scripts as a gist here: <a href="https://gist.github.com/bgianfo/24a1623953a8d45cd72e918dd80510b3">PolarFire SOC Icicle Gists</a></p>
-<h2><a class="header" href="#first-boot" id="first-boot">First Boot</a></h2>
+<h2 id="first-boot"><a class="header" href="#first-boot">First Boot</a></h2>
 <p>After getting everything figured out I was able to boot, attached to all of
 the UART serial consoles attached, and interact with the linux login.</p>
 <p><img src="polarfire/./initial-boot.png" alt="first boot" /></p>
@@ -919,59 +888,31 @@ the UART serial consoles attached, and interact with the linux login.</p>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                        
-
-                        
-
                         <div style="clear: both"></div>
                     </nav>
                 </div>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                
-
-                
             </nav>
 
         </div>
 
-        
-
-        
-
-        
-
-        
         <script type="text/javascript">
             window.playground_copyable = true;
         </script>
-        
-
-        
-
-        
         <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
-        
-
         <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
         <script src="book.js" type="text/javascript" charset="utf-8"></script>
 
         <!-- Custom JS scripts -->
-        
-
-        
-        
         <script type="text/javascript">
         window.addEventListener('load', function() {
             window.setTimeout(window.print, 100);
         });
         </script>
-        
-        
-
     </body>
 </html>
