@@ -9,3 +9,6 @@ title = "Brian's Lab Notebook"
 git-repository-url = "http://github.com/bgianfo/lab-notebook"
 default-theme = "ayu"
 preferred-dark-theme = "ayu"
+
+[output.linkcheck]
+optional = true
