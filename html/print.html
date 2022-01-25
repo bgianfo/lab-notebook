@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="background.html"><strong aria-hidden="true">1.</strong> Background</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Notes</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="notes/2020-12-29.html"><strong aria-hidden="true">2.1.</strong> 2020-12-29: Lab Notebook Setup</a></li><li class="chapter-item expanded "><a href="notes/2020-12-29-gpg-signing.html"><strong aria-hidden="true">2.2.</strong> 2020-12-29: Commit Signing</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> SerenityOS</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="serenityos/2021-01-02.html"><strong aria-hidden="true">3.1.</strong> 2021-01-02: KASAN Research</a></li><li class="chapter-item expanded "><a href="serenityos/2021-01-01.html"><strong aria-hidden="true">3.2.</strong> 2021-01-01: Stack Canaries</a></li><li class="chapter-item expanded "><a href="serenityos/2020-12-30.html"><strong aria-hidden="true">3.3.</strong> 2020-12-30: CodeQL Queries</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> PolarFire SOC Icicle</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="polarfire/2020-11-26.html"><strong aria-hidden="true">4.1.</strong> 2020-11-26: Initial Setup</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="background.html"><strong aria-hidden="true">1.</strong> Background</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Notes</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="notes/2020-12-29.html"><strong aria-hidden="true">2.1.</strong> 2020-12-29: Lab Notebook Setup</a></li><li class="chapter-item expanded "><a href="notes/2020-12-29-gpg-signing.html"><strong aria-hidden="true">2.2.</strong> 2020-12-29: Commit Signing</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> SerenityOS</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="serenityos/2022-01-16.html"><strong aria-hidden="true">3.1.</strong> 2022-01-06: ftrivial-auto-var-init</a></li><li class="chapter-item expanded "><a href="serenityos/2021-01-02.html"><strong aria-hidden="true">3.2.</strong> 2021-01-02: KASAN Research</a></li><li class="chapter-item expanded "><a href="serenityos/2021-01-01.html"><strong aria-hidden="true">3.3.</strong> 2021-01-01: Stack Canaries</a></li><li class="chapter-item expanded "><a href="serenityos/2020-12-30.html"><strong aria-hidden="true">3.4.</strong> 2020-12-30: CodeQL Queries</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> PolarFire SOC Icicle</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="polarfire/2020-11-26.html"><strong aria-hidden="true">4.1.</strong> 2020-11-26: Initial Setup</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -298,8 +298,150 @@ Date:   Tue Dec 29 21:12:47 2020 -0800
 <p>GitHub displays these with the <strong>VERIFIED</strong> qualifier.</p>
 <p>See: <a href="https://github.com/bgianfo/lab-notebook/commit/be372efa95c64ef4a71e2b06e69baf47d275923f">https://github.com/bgianfo/lab-notebook/commit/be372efa95c64ef4a71e2b06e69baf47d275923f</a></p>
 <p>Nice!</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="research-into-kasan-in-serenityos"><a class="header" href="#research-into-kasan-in-serenityos">Research into KASAN in SerenityOS</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="compiling-serenityos-kernel-with--ftrivial-auto-var-init"><a class="header" href="#compiling-serenityos-kernel-with--ftrivial-auto-var-init">Compiling SerenityOS Kernel with -ftrivial-auto-var-init</a></h1>
 <h2 id="introduction-1"><a class="header" href="#introduction-1">Introduction</a></h2>
+<p>In recent years the industry has collectively decided that it's probably time
+we do something to address the various bugs that can occur from uninitialized
+stack memory. A few examples of bug classes that can originate from uninitialized
+stack memory include:</p>
+<ul>
+<li>
+<p>Kernel information disclosure, where uninitialized struct members or
+struct padding is copied back to usermode, leaking kernel information such
+as stack or heap addresses, or secret data like stack cookies.</p>
+</li>
+<li>
+<p>Control flow based on uninitialized memory can cause a variety of issues at
+at runtime, including stack corruptions like buffer overflows, heap corruptions
+due to deleting stray pointers. Even basic logic bugs can result from control
+flow operating on uninitialized data.</p>
+</li>
+</ul>
+<p><strong>TODO: Add more history from the &quot;Automatic initialization of variables section https://isopenbsdsecu.re/mitigations/missing_features/</strong></p>
+<p>In 2018 <a href="https://reviews.llvm.org/D54604">JF Bastien contributed &quot;Automatic variable initialization&quot; to LLVM</a>
+and later presented that work in 2019 with his <a href="https://www.youtube.com/watch?v=I-XUHPimq3o">&quot;Mitigating Undefined Behavior&quot;</a>
+talk at the LLVM Developers Meeting.</p>
+<p>At CppCon 2019 <a href="https://www.youtube.com/watch?v=rQWjF8NvqAU">Joe Bialek and Shayne Hiet-Block presented their
+&quot;Killing Uninitialized Memory: Protecting the OS Without Destroying Performance”</a>
+talk which describes the <code>/initAll</code> mechanism that was <a href="https://msrc-blog.microsoft.com/2020/05/13/solving-uninitialized-stack-memory-on-windows/">built into the MSVC compiler</a>
+and integrated into the windows build system to combat uninitialized stack memory bugs
+throughout the windows kernel and hyper visor stack.</p>
+<p>SerenityOS attempts to employ a variety of <a href="https://github.com/SerenityOS/serenity/blob/master/Base/usr/share/man/man7/Mitigations.md">security mitigations</a> to harden
+the system against would be attackers. I was interested in pursuing some sort
+of stack zeroing mechanism to mitigate this entire bug class in the SerenityOS
+kernel. SerenityOS utilizes GCC (version 11.2 at the time of writing) as it's
+primary toolchain, with secondary support for Clang+LLVM available as well. </p>
+<p>So I started researching what options were available for GCC.</p>
+<h2 id="forward-porting"><a class="header" href="#forward-porting">Forward porting...</a></h2>
+<p>With a little bit of effort I was able to backport the GCC <code>-ftrivial-auto-var-init</code>
+feature and the subsequent related fixes to the SerenityOS GCC 11.2 toolchain.</p>
+<p>First we needed the <a href="https://gcc.gnu.org/git/?p=gcc.git;a=commit;h=a25e0b5e6ac8a77a71c229e0a7b744603365b0e9">original commit</a> which contains the majority of the implementation.</p>
+<pre><code>commit cd5638353ee77f6c5c072f6ca9a19d77ad2f2bf8
+Author: Brian Gianforcaro &lt;bgianf@serenityos.org&gt;
+Date:   Sat Sep 11 08:27:12 2021 -0700
+
+    Toolchain: Backport -ftrivial-auto-var-init to our GCC 11.2 toolchain
+
+    This change back ports the patch to support -ftrivial-auto-var-init so
+    that it compiles on top of the 11.2 release. It was originally committed
+    to target the GCC 12 release cycle. The back porting was just fixing up
+    patch collisions, no major surgery was needed.
+</code></pre>
+<p>When trying to compile Serenity with a newly built toolchain with just the first patch
+applied I immediately ran into an ICE (Internal Compiler Error). I put the project on hold
+for a few days and decided to see if the issue had been reported upstream already. Much to
+my surprise it had, and there was already a <a href="https://gcc.gnu.org/git/?p=gcc.git;a=commit;h=a21bd3cebd6f54af70a37c18b8fbeae933fb6515">fix available in the GCC development branch</a>.</p>
+<details>
+  <summary>Toolchain: Backport `__builtin_clear_padding` fix to gcc 11.2</summary>
+<pre><code>commit 463ce32c0edd689f56b619a9eeabc77cc44b528c
+Author: Brian Gianforcaro &lt;bgianf@serenityos.org&gt;
+Date:   Sun Oct 3 03:07:40 2021 -0700
+
+    Toolchain: Backport '__builtin_clear_padding' fix to gcc 11.2
+
+    This change backports a fix for a bug which previously would cause us
+    to ICE when compiling the Kernel, with this patch we continue chugging
+    along.
+</code></pre>
+</details>
+<p>While investigating I also <a href="https://gcc.gnu.org/git/?p=gcc.git;a=commit;h=1dae802b685937b1dc52e49d0641c75f3186ba14">found a few</a> other <a href="https://gcc.gnu.org/git/?p=gcc.git;a=commitdiff;h=79f488de3036a4a4be08df2a782e6eb02419db19">ICE fixes</a> that it looked like we should
+really have if we were going to ever merge this to master, so I took care of porting those as well.</p>
+<details>
+  <summary>Toolchain: Backport 'avoid auto-init of empty types' fix to gcc 11.2</summary>
+<pre><code>commit 8ddf95bb4fc61482fda8d7460c208c43873131ab
+Author: Brian Gianforcaro &lt;bgianf@serenityos.org&gt;
+Date:   Sat Sep 11 09:05:07 2021 -0700
+
+    Toolchain: Backport 'avoid auto-init of empty types' fix to gcc 11.2
+
+    This is a follow up fix to the main `-ftrivial-auto-var-init` patch
+    that we need as well. This patch didn't require any work to apply.
+</code></pre>
+</details>
+<details>
+  <summary>Toolchain: Backport 'avoid ICE with auto-init and nested functions' fix</summary>
+<pre><code>commit 41ec4ff60a0e5d04171631ccdadeeb147a4e86aa
+Author: Brian Gianforcaro &lt;bgianf@serenityos.org&gt;
+Date:   Sat Sep 11 09:14:53 2021 -0700
+
+    Backport 'avoid ICE with auto-init and nested functions' fix
+    
+
+    This is a follow up fix to the main `-ftrivial-auto-var-init` patch
+    that we need as well. This patch didn't require any work to apply.
+</code></pre>
+</details>
+<p>After finding all the fixes I needed to backport in order to get the system to
+actually build without crashing the compiler, I was eager to try it out.
+The following patch is all that was needed to integrate the new compiler flag
+into the SerenityOS Kernel build system.</p>
+<pre><code class="language-diff">commit bf59bf2d0fb3e3b7745e60ddde715a175d7b1c3d
+Author: Brian Gianforcaro &lt;bgianf@serenityos.org&gt;
+Date:   Sat Sep 11 09:17:06 2021 -0700
+
+    CMake: Enable `-ftrivial-auto-init=pattern` in the Kernel
+
+diff --git a/Kernel/CMakeLists.txt b/Kernel/CMakeLists.txt
+index 1f1c529018..ffd067d289 100644
+--- a/Kernel/CMakeLists.txt
++++ b/Kernel/CMakeLists.txt
+@@ -409,6 +409,10 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL &quot;GNU&quot;)
+     if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL &quot;11.1&quot;)
+         # Zero any registers used within a function on return (to reduce data lifetime and ROP gadgets).
+         add_compile_options(-fzero-call-used-regs=used-gpr)
++
++        # Auto initialize trivial types on the stack. Note: This isn't natively supported by the GCC 11 series.
++        # It was back ported for serenity, see Toolchain/Patches/gcc-ftrivial-auto-var-init.patch
++        add_compile_options(-ftrivial-auto-var-init=pattern)
+     endif()
+     link_directories(${TOOLCHAIN_ROOT}/${SERENITY_ARCH}-pc-serenity/lib)
+     link_directories(${TOOLCHAIN_ROOT}/lib/gcc/${SERENITY_ARCH}-pc-serenity/${GCC_VERSION}/)
+diff --git a/Kernel/Prekernel/CMakeLists.txt b/Kernel/Prekernel/CMakeLists.txt
+index dbf1d8be8f..bf361e1aa2 100644
+--- a/Kernel/Prekernel/CMakeLists.txt
++++ b/Kernel/Prekernel/CMakeLists.txt
+@@ -88,4 +88,5 @@ install(FILES &quot;${CMAKE_CURRENT_BINARY_DIR}/Prekernel&quot; DESTINATION boot)
+ get_target_property(PREKERNEL_TARGET_OPTIONS ${PREKERNEL_TARGET} COMPILE_OPTIONS)
+ list(REMOVE_ITEM PREKERNEL_TARGET_OPTIONS &quot;-fsanitize-coverage=trace-pc&quot;)
+ list(REMOVE_ITEM PREKERNEL_TARGET_OPTIONS &quot;-fsanitize=kernel-address&quot;)
++list(REMOVE_ITEM PREKERNEL_TARGET_OPTIONS &quot;-ftrivial-auto-var-init=pattern&quot;)
+ set_target_properties(${PREKERNEL_TARGET} PROPERTIES COMPILE_OPTIONS &quot;${PREKERNEL_TARGET_OPTIONS}&quot;)
+</code></pre>
+<h2 id="investigation"><a class="header" href="#investigation">Investigation</a></h2>
+<p>After booting the system and seeing it crash, I attached a debugger to QEMU and saw
+that we now have a Undefined Behavior Sanitizer crash on startup while detecting 
+which processor features are available. </p>
+<pre><code class="language-cpp">(gdb) bt
+#0  __ubsan_handle_type_mismatch_v1 (data=..., ptr=...)
+#1  0xc1460d63 in operator() (f=..., __closure=...)
+#2  Kernel::Processor::cpu_detect (this=...)
+#3  0xc1461a4d in Kernel::Processor::cpu_setup (this=...)
+#4  0xc1462f39 in Kernel::Processor::early_initialize (this=..., cpu=...)
+#5  0xc145e886 in Kernel::init (boot_info=...)
+#6  0x0010309d in Kernel::init ()
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="research-into-kasan-in-serenityos"><a class="header" href="#research-into-kasan-in-serenityos">Research into KASAN in SerenityOS</a></h1>
+<h2 id="introduction-2"><a class="header" href="#introduction-2">Introduction</a></h2>
 <p>Kernel Address Sanitizer (KASAN) is a dynamic analysis technology to find
 dynamic memory errors in OS Kernels. It's based on instrumentation injected
 by the compiler which checks all memory accesses made during execution.</p>
@@ -370,7 +512,7 @@ The linker complains about about a bunch of missing <strong>__asan_load{n}_noabo
 </code></pre>
 <p>I guess I'll need to stub out these symbols for serenity when I get time to work on this further.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="enabling-stack-canaries-for-serenityos"><a class="header" href="#enabling-stack-canaries-for-serenityos">Enabling stack canaries for SerenityOS</a></h1>
-<h2 id="introduction-2"><a class="header" href="#introduction-2">Introduction</a></h2>
+<h2 id="introduction-3"><a class="header" href="#introduction-3">Introduction</a></h2>
 <p>I've been looking into beefing up static and dynamic analysis available in
 <a href="http://www.serenityos.org">SerenityOS</a>. One of the most basic things that
 wasn't enabled yet was GCC's <code>-fstack-protector</code> feature, which automatically
@@ -827,7 +969,7 @@ select base.getQualifiedName()
 </li>
 </ol>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="12-29-2020-initial-setup-of-the-polarfire-soc-icicle-kit"><a class="header" href="#12-29-2020-initial-setup-of-the-polarfire-soc-icicle-kit">12-29-2020: Initial Setup of the PolarFire SOC Icicle Kit</a></h1>
-<h2 id="introduction-3"><a class="header" href="#introduction-3">Introduction</a></h2>
+<h2 id="introduction-4"><a class="header" href="#introduction-4">Introduction</a></h2>
 <p>I picked up the PolarFire SOC Icicle Kit during the crowd  funding phase on <a href="https://www.crowdsupply.com/microchip/polarfire-soc-icicle-kit">Crowd Supply</a>
 I've been playing around with the hardware off and on since I got it,</p>
 <p><img src="polarfire/./icicle-kit.png" alt="image of the polarfire SOC board" /></p>
