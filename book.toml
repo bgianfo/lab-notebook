@@ -10,5 +10,6 @@ git-repository-url = "http://github.com/bgianfo/lab-notebook"
 default-theme = "ayu"
 preferred-dark-theme = "ayu"
 
-[output.linkcheck]
-optional = true
+# See if disabling this gets the action working again
+#[output.linkcheck]
+#optional = true
