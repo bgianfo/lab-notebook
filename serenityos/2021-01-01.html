@@ -170,8 +170,8 @@ has a nice overview of the different variants of <code>-fstack-protector</code> 
 * A call to alloca().
 * A local variable that has its address taken
 </code></pre>
-<p>It appears to me that <code>-fstack-protector-strong</code> would be great compromise for
-Serenity OS.</p>
+<p>It appears to me that <code>-fstack-protector-strong</code> would be a good compromise for
+use in Serenity OS.</p>
 <h2 id="bootstrapping-the-implementation"><a class="header" href="#bootstrapping-the-implementation">Bootstrapping the Implementation</a></h2>
 <p>The actual change to the build system is (of course) very simple:</p>
 <pre><code class="language-diff">diff --git a/CMakeLists.txt b/CMakeLists.txt
