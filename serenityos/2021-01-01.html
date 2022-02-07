@@ -137,20 +137,20 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="enabling-stack-canaries-for-serenityos"><a class="header" href="#enabling-stack-canaries-for-serenityos">Enabling stack canaries for SerenityOS</a></h1>
+                        <h1 id="enabling-stack-canaries-for-serenity-os"><a class="header" href="#enabling-stack-canaries-for-serenity-os">Enabling stack canaries for Serenity OS</a></h1>
 <h2 id="introduction"><a class="header" href="#introduction">Introduction</a></h2>
 <p>I've been looking into beefing up static and dynamic analysis available in
 <a href="http://www.serenityos.org">SerenityOS</a>. One of the most basic things that
 wasn't enabled yet was GCC's <code>-fstack-protector</code> feature, which automatically
 inserts a <a href="https://en.wikipedia.org/wiki/Stack_buffer_overflow#Stack_canaries">stack canary</a>
-in the epilog of all functions.</p>
+in the epilogue of all functions.</p>
 <p><a href="https://wiki.osdev.org/Stack_Smashing_Protector">osdev-wiki: Stack Smashing Protector</a></p>
 <h2 id="which-variant-to-use"><a class="header" href="#which-variant-to-use">Which variant to use?</a></h2>
 <p>There are three different variants of <code>-fstack-protector</code>, each with different
-pros and cons. <a href="https://twitter.com/kees_cook">Kees Cook</a> has a nice writeup on
-the specifics of <code>-fstack-protector-strong</code> and it's design on his <a href="https://outflux.net/blog/archives/2014/01/27/fstack-protector-strong/">blog</a>.</p>
+pros and cons. <a href="https://twitter.com/kees_cook">Kees Cook</a> has a nice write-up on
+the specifics of <code>-fstack-protector-strong</code> specifically and it's design on his <a href="https://outflux.net/blog/archives/2014/01/27/fstack-protector-strong/">blog</a>.</p>
 <p>The <a href="https://www.keil.com/support/man/docs/armclang_ref/armclang_ref_cjh1548250046139.htm">ARM Clang Compiler Reference Guide</a>
-has a nice overview of the different variants of <code>-fstack-protector</code> and their impact.</p>
+also has a overview of all the different variants of <code>-fstack-protector</code> and their impact.</p>
 <pre><code>-fno-stack-protector disables stack protection.
 
 -fstack-protector enables stack protection for vulnerable functions that contain:
@@ -170,10 +170,10 @@ has a nice overview of the different variants of <code>-fstack-protector</code> 
 * A call to alloca().
 * A local variable that has its address taken
 </code></pre>
-<p>It appears to me that <code>-fstack-protector-strong</code> would be a good compromise for
-use in Serenity OS.</p>
+<p>It appears to me that <code>-fstack-protector-strong</code> would be great compromise of
+minimally invasive while still providing significant protection for Serenity OS.</p>
 <h2 id="bootstrapping-the-implementation"><a class="header" href="#bootstrapping-the-implementation">Bootstrapping the Implementation</a></h2>
-<p>The actual change to the build system is (of course) very simple:</p>
+<p>The actual change to the build system is very simple:</p>
 <pre><code class="language-diff">diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 7597e97fab..df039d3f82 100644
 --- a/CMakeLists.txt
@@ -380,7 +380,7 @@ index 3366957d5d..971880ca00 100644
 </code></pre>
 <p>With these changes the system now compiles and links cleanly!</p>
 <h2 id="testing"><a class="header" href="#testing">Testing</a></h2>
-<p>Now that we have the system compiling, lets write test program to make sure we
+<p>Now that we have the system compiling, lets write a small test program to make sure we
 can actually crash the program when a stack smash is detected. The program should
 overwrite a buffer on the stack:</p>
 <pre><code class="language-cpp">#include &lt;cstdio&gt;
@@ -410,7 +410,7 @@ int main()
     return 0;
 }
 </code></pre>
-<p>If we compile this, and boot into serenity and run our program what happens? </p>
+<p>Lets see what happens if we compile this, and run it in Serenity. </p>
 <pre><code>courage ~ $ ./user/Tests/LibC/stack-smash
 [+] Starting the stack smash ...
 [+] Stack smash wasn't detected!
@@ -549,8 +549,8 @@ Userland/Tests/LibC/stack-smash:     file format elf32-i386
 Error: Stack protector failure, stack smashing detected!
 Shell: Job 1 (/usr/Tests/LibC/stack-smash) Aborted
 </code></pre>
-<h2 id="final-pr"><a class="header" href="#final-pr">Final PR</a></h2>
-<p>The resulting pull request is here: 
+<h2 id="final-pull-request"><a class="header" href="#final-pull-request">Final Pull Request</a></h2>
+<p>You can find the resulting pull request that was later merged here: 
 <a href="https://github.com/SerenityOS/serenity/pull/4726">Build + LibC: Enable -fstack-protector-strong in user space</a></p>
 
                     </main>
