@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="background.html"><strong aria-hidden="true">1.</strong> Background</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Notes</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="notes/2020-12-29.html"><strong aria-hidden="true">2.1.</strong> 2020-12-29: Lab Notebook Setup</a></li><li class="chapter-item expanded "><a href="notes/2020-12-29-gpg-signing.html"><strong aria-hidden="true">2.2.</strong> 2020-12-29: Commit Signing</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> SerenityOS</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="serenityos/2022-01-16.html"><strong aria-hidden="true">3.1.</strong> 2022-01-06: ftrivial-auto-var-init</a></li><li class="chapter-item expanded "><a href="serenityos/2021-01-02.html"><strong aria-hidden="true">3.2.</strong> 2021-01-02: KASAN Research</a></li><li class="chapter-item expanded "><a href="serenityos/2021-01-01.html"><strong aria-hidden="true">3.3.</strong> 2021-01-01: Stack Canaries</a></li><li class="chapter-item expanded "><a href="serenityos/2020-12-30.html"><strong aria-hidden="true">3.4.</strong> 2020-12-30: CodeQL Queries</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> PolarFire SOC Icicle</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="polarfire/2020-11-26.html"><strong aria-hidden="true">4.1.</strong> 2020-11-26: Initial Setup</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="background.html"><strong aria-hidden="true">1.</strong> Background</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Notes</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="notes/2020-12-29.html"><strong aria-hidden="true">2.1.</strong> 2020-12-29: Lab Notebook Setup</a></li><li class="chapter-item expanded "><a href="notes/2020-12-29-gpg-signing.html"><strong aria-hidden="true">2.2.</strong> 2020-12-29: Commit Signing</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> SerenityOS</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="serenityos/gdb-port.html"><strong aria-hidden="true">3.1.</strong> 2022-02-20: Porting GDB</a></li><li class="chapter-item expanded "><a href="serenityos/2022-01-16.html"><strong aria-hidden="true">3.2.</strong> 2022-01-06: ftrivial-auto-var-init</a></li><li class="chapter-item expanded "><a href="serenityos/2021-01-02.html"><strong aria-hidden="true">3.3.</strong> 2021-01-02: KASAN Research</a></li><li class="chapter-item expanded "><a href="serenityos/2021-01-01.html"><strong aria-hidden="true">3.4.</strong> 2021-01-01: Stack Canaries</a></li><li class="chapter-item expanded "><a href="serenityos/2020-12-30.html"><strong aria-hidden="true">3.5.</strong> 2020-12-30: CodeQL Queries</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> PolarFire SOC Icicle</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="polarfire/2020-11-26.html"><strong aria-hidden="true">4.1.</strong> 2020-11-26: Initial Setup</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -298,8 +298,49 @@ Date:   Tue Dec 29 21:12:47 2020 -0800
 <p>GitHub displays these with the <strong>VERIFIED</strong> qualifier.</p>
 <p>See: <a href="https://github.com/bgianfo/lab-notebook/commit/be372efa95c64ef4a71e2b06e69baf47d275923f">https://github.com/bgianfo/lab-notebook/commit/be372efa95c64ef4a71e2b06e69baf47d275923f</a></p>
 <p>Nice!</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="compiling-serenityos-kernel-with--ftrivial-auto-var-init"><a class="header" href="#compiling-serenityos-kernel-with--ftrivial-auto-var-init">Compiling SerenityOS Kernel with -ftrivial-auto-var-init</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="porting-gdb-to-serenityos"><a class="header" href="#porting-gdb-to-serenityos">Porting GDB to SerenityOS</a></h1>
 <h2 id="introduction-1"><a class="header" href="#introduction-1">Introduction</a></h2>
+<p>While working on SerenityOS over the past few years, one of things I've missed
+the most is a powerful debugger. For whatever reason <a href="https://awesomekling.github.io/about/">Andreas</a> and most of the
+other developers working on the system don't seem to be fans using a debuggers.
+Now that I think about it, Andreas even has a video titled
+<a href="https://www.youtube.com/watch?v=epcaK_bhWWA">&quot;Why I don't use a debugger&quot;</a> on his YouTube channel. 😁</p>
+<p><a href="https://twitter.com/ItamarShenhar">Itamar Shenhar</a> has been doing a bunch of work on Hack Studio,
+and as part of that has implemented <code>ptrace(..)</code> and a basic debugger known as <code>sdb</code> (See <a href="https://github.com/SerenityOS/serenity/pull/1885">PR #1885</a>):</p>
+<pre><code>courage:~ $ sdb /bin/ls
+Program is stopped at: 0x0bfae99d (Loader.so:ELF::DynamicLinker::linker_main() +0x5ed)
+Source location: ./Userland/Libraries/LibELF/DynamicLinker.cpp:585
+
+(sdb) help
+Options:
+cont - Continue execution
+si - step to the next instruction
+sl - step to the next source line
+line - show the position of the current instruction in the source code
+regs - Print registers
+dis [number of instructions] - Print disassembly
+bp &lt;address/symbol/file:line&gt; - Insert a breakpoint
+bt - show backtrace for current thread
+x &lt;address&gt; - examine dword in memory
+
+(sdb) dis 1
+    0x0bfae99d &lt;+0&gt;:
+</code></pre>
+<p>The debugger integration with <code>Hack Studio</code> and the standalone <code>sdb</code> debugger are great first passes at some
+basic debugging infrastructure. During my time at Microsoft I have learned to love the debugger for root
+causing complicated systems level bugs and even learning how a complex program works, there's no better tool in my
+humble opinion. I think I would be a lot more productive working on Serenity if I had a more powerful debugger,
+like <code>gdb</code>. So I decided to port the <code>GNU Project Debugger</code> to SerenityOS!</p>
+<h2 id="initial-gdb-bring-up"><a class="header" href="#initial-gdb-bring-up">Initial GDB Bring Up</a></h2>
+<p>The initial work to get the debugger to compile went fairly smoothly. The work started in 
+<a href="https://github.com/SerenityOS/serenity/pull/11278">PR #11278 - LibC+Ports: Add initial GDB 11.1 port</a></p>
+<p><img style="display: block; 
+           margin-left: auto;
+           margin-right: auto;
+           width: 80%;"
+src="https://user-images.githubusercontent.com/1212/147570590-b841b53a-4971-4154-92dc-d09c530d86e5.png"/></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="compiling-serenityos-kernel-with--ftrivial-auto-var-init"><a class="header" href="#compiling-serenityos-kernel-with--ftrivial-auto-var-init">Compiling SerenityOS Kernel with -ftrivial-auto-var-init</a></h1>
+<h2 id="introduction-2"><a class="header" href="#introduction-2">Introduction</a></h2>
 <p>In recent years the industry has collectively decided that it's probably time
 we do something to address the various bugs that can occur from uninitialized
 stack memory. A few examples of bug classes that can originate from uninitialized
@@ -441,7 +482,7 @@ which processor features are available. </p>
 #6  0x0010309d in Kernel::init ()
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="research-into-kasan-in-serenityos"><a class="header" href="#research-into-kasan-in-serenityos">Research into KASAN in SerenityOS</a></h1>
-<h2 id="introduction-2"><a class="header" href="#introduction-2">Introduction</a></h2>
+<h2 id="introduction-3"><a class="header" href="#introduction-3">Introduction</a></h2>
 <p>Kernel Address Sanitizer (KASAN) is a dynamic analysis technology to find
 dynamic memory errors in OS Kernels. It's based on instrumentation injected
 by the compiler which checks all memory accesses made during execution.</p>
@@ -512,7 +553,7 @@ The linker complains about about a bunch of missing <strong>__asan_load{n}_noabo
 </code></pre>
 <p>I guess I'll need to stub out these symbols for serenity when I get time to work on this further.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="enabling-stack-canaries-for-serenity-os"><a class="header" href="#enabling-stack-canaries-for-serenity-os">Enabling stack canaries for Serenity OS</a></h1>
-<h2 id="introduction-3"><a class="header" href="#introduction-3">Introduction</a></h2>
+<h2 id="introduction-4"><a class="header" href="#introduction-4">Introduction</a></h2>
 <p>I've been looking into beefing up static and dynamic analysis available in
 <a href="http://www.serenityos.org">SerenityOS</a>. One of the most basic things that
 wasn't enabled yet was GCC's <code>-fstack-protector</code> feature, which automatically
@@ -969,7 +1010,7 @@ select base.getQualifiedName()
 </li>
 </ol>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="12-29-2020-initial-setup-of-the-polarfire-soc-icicle-kit"><a class="header" href="#12-29-2020-initial-setup-of-the-polarfire-soc-icicle-kit">12-29-2020: Initial Setup of the PolarFire SOC Icicle Kit</a></h1>
-<h2 id="introduction-4"><a class="header" href="#introduction-4">Introduction</a></h2>
+<h2 id="introduction-5"><a class="header" href="#introduction-5">Introduction</a></h2>
 <p>I picked up the PolarFire SOC Icicle Kit during the crowd  funding phase on <a href="https://www.crowdsupply.com/microchip/polarfire-soc-icicle-kit">Crowd Supply</a>
 I've been playing around with the hardware off and on since I got it,</p>
 <p><img src="polarfire/./icicle-kit.png" alt="image of the polarfire SOC board" /></p>
