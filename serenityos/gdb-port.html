@@ -237,18 +237,7 @@ index fffb91d..defc239 100755
 <p>The last thing holding us back from successfully compiling + linking gdb was that SerenityOS didn't implement <code>tcsendbreak(..)</code>
 or <code>tcdrain(..)</code>. Fortunately we didn't have to worry about supporting real terminals so a <a href="https://github.com/SerenityOS/serenity/pull/11278/commits/99061e7af4f8f698c40581134633163d53f25a09">stub implementation
 was sufficient for our purposes</a>.</p>
-<pre><code class="language-diff">From 99061e7af4f8f698c40581134633163d53f25a09
-From: Brian Gianforcaro &lt;bgianf@serenityos.org&gt;
-Date: Thu, 16 Dec 2021 04:24:25 -0800
-Subject: LibC: Stub out tcsendbreak(..) and tcdrain(..)
-
-They are required for gdb to build.
----
- Userland/Libraries/LibC/termios.cpp | 14 ++++++++++++++
- Userland/Libraries/LibC/termios.h   |  2 ++
- 2 files changed, 16 insertions(+)
-
-diff --git a/Userland/Libraries/LibC/termios.cpp b/Userland/Libraries/LibC/termios.cpp
+<pre><code class="language-diff">diff --git a/Userland/Libraries/LibC/termios.cpp b/Userland/Libraries/LibC/termios.cpp
 index a6ca21243087f..291dafa65940f 100644
 --- a/Userland/Libraries/LibC/termios.cpp
 +++ b/Userland/Libraries/LibC/termios.cpp
@@ -295,7 +284,7 @@ index 752a2c7cbadf2..3a2382c7b9da2 100644
  int tcflow(int fd, int action);
  int tcflush(int fd, int queue_selector);
 </code></pre>
-<p>After putting all of these changes togeather we had the system building manually,
+<p>After putting all of these changes together we had the system building manually,
 so we put together a <code>package.sh</code> file to automate compilation and installation of our gdb port:</p>
 <pre><code class="language-sh">#!/usr/bin/env -S bash ../.port_include.sh
 port=gdb
@@ -322,7 +311,7 @@ export ac_cv_func_madvise=no
 src="https://user-images.githubusercontent.com/1212/147570590-b841b53a-4971-4154-92dc-d09c530d86e5.png"/></p>
 <p>As you can see the program does't seem to actually run, it just halts.</p>
 <h2 id="bonus-bug-kernel-process-name-after-pt_trace_me"><a class="header" href="#bonus-bug-kernel-process-name-after-pt_trace_me">Bonus Bug: Kernel Process Name after <code>PT_TRACE_ME</code></a></h2>
-<p>After the initial port was compiling I started to debug what was wrong with out implementation that was
+<p>After the initial port was compiling I started to debug what in our implementation was
 causing gdb to hang. If you looked at the processes under <code>System Monitor</code> you can see see that we have
 two processes named <code>gdb</code>, one sitting <code>Suspended</code>, and one sitting <code>Selecting</code> which is serenity's way
 of indicating a process is waiting for something.</p>
@@ -331,6 +320,9 @@ of indicating a process is waiting for something.</p>
            margin-right: auto;
            width: 80%;"
 src="gdb-incorrect-name.png"/></p>
+<p>This doesn't make any sense, why is gdb launching two processes and why is it hanging waiting for it self?
+One thing I was wondering is why was the strace failing? So I quickly hacked up some logging to the ptrace
+implementation in the Kernel to let me see what was happening.</p>
 <pre><code class="language-diff">diff --git a/Kernel/Syscalls/ptrace.cpp b/Kernel/Syscalls/ptrace.cpp
 index 26d5d92e71..016007f97f 100644
 --- a/Kernel/Syscalls/ptrace.cpp
@@ -376,60 +368,82 @@ index 26d5d92e71..016007f97f 100644
          peer_process.stop_tracing();
          peer-&gt;send_signal(SIGCONT, &amp;caller);
          break;
+</code></pre>
+<p>Re-running <code>gdb /bin/ls</code> with the logging active in the kernel we now see the
+following output:</p>
+<pre><code>249.269 [#0 gdb(51:51)]: PT_TRACE_ME - caller(51)
+249.273 [#0 gdb(49:49)]: PT_ATTACH - peer(51) caller(49)
+249.273 [#0 gdb(49:49)]: PT_CONTINUE - peer(51) caller(49)
+249.278 [#0 gdb(51:51)]: signal: SIGCONT resuming gdb(51:51)
+</code></pre>
+<p>So we </p>
+<pre><code class="language-diff">From 70f3fa2dd2d8923fbd683dda9048938629ac5044 Mon Sep 17 00:00:00 2001
+From: Brian Gianforcaro &lt;bgianf@serenityos.org&gt;
+Date: Sat, 12 Feb 2022 08:17:42 -0800
+Subject: [PATCH] Kernel: Set new process name in `do_exec` before waiting for
+ the tracer
 
-     case PT_SYSCALL:
-+        dbgln(&quot;PT_SYSCALL - peer({}) caller({}) &quot;, peer_process.pid(), caller.pid());
-         tracer-&gt;set_trace_syscalls(true);
-         peer-&gt;send_signal(SIGCONT, &amp;caller);
-         break;
+While investigating why gdb is failing when it calls `PT_CONTINUE`
+against Serenity I noticed that the names of the programs in the
+System Monitor didn't make sense. They were seemingly stale.
 
-     case PT_GETREGS: {
-+        dbgln(&quot;PT_GETREGS - peer({}) caller({}) &quot;, peer_process.pid(), caller.pid());
-         if (!tracer-&gt;has_regs())
-             return EINVAL;
-         auto* regs = reinterpret_cast&lt;PtraceRegisters*&gt;(params.addr);
-@@ -97,6 +105,7 @@ static ErrorOr&lt;FlatPtr&gt; handle_ptrace(const Kernel::Syscall::SC_ptrace_params&amp; p
-     }
+After inspecting the kernel code, it became apparent that the sequence
+occurs as follows:
 
-     case PT_SETREGS: {
-+        dbgln(&quot;PT_SETREGS - peer({}) caller({}) &quot;, peer_process.pid(), caller.pid());
-         if (!tracer-&gt;has_regs())
-             return EINVAL;
+    1. Debugger calls `fork()`
+    2. The forked child calls `PT_TRACE_ME`
+    3. The `PT_TRACE_ME` instructs the forked process to block in the
+       kernel waiting for a signal from the tracer on the next call
+       to `execve(..)`.
+    4. Debugger waits for forked child to spawn and stop, and then it
+       calls `PT_ATTACH` followed by `PT_CONTINUE` on the child.
+    5. Currently the `PT_CONTINUE` fails because of some other yet to
+       be found bug.
+    6. The process name is set immediately AFTER we are woken up by
+       the `PT_CONTINUE` which never happens in the case I'm debugging.
 
-@@ -114,16 +123,19 @@ static ErrorOr&lt;FlatPtr&gt; handle_ptrace(const Kernel::Syscall::SC_ptrace_params&amp; p
-     }
+This chain of events leaves the process suspended, with the name  of
+the original (forked) process instead of the name we inherit from
+the `execve(..)` call.
 
-     case PT_PEEK: {
-+        dbgln(&quot;PT_PEEK - peer({}) caller({}) &quot;, peer_process.pid(), caller.pid());
-         auto data = TRY(peer-&gt;process().peek_user_data(Userspace&lt;const FlatPtr*&gt; { (FlatPtr)params.addr }));
-         TRY(copy_to_user((FlatPtr*)params.data, &amp;data));
-         break;
-     }
+To avoid such confusion in the future, we set the new name before we
+block waiting for the tracer.
+---
+ Kernel/Syscalls/execve.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-     case PT_POKE:
-+        dbgln(&quot;PT_POKE - peer({}) caller({}) &quot;, peer_process.pid(), caller.pid());
-         TRY(peer-&gt;process().poke_user_data(Userspace&lt;FlatPtr*&gt; { (FlatPtr)params.addr }, params.data));
-         return 0;
+diff --git a/Kernel/Syscalls/execve.cpp b/Kernel/Syscalls/execve.cpp
+index 93d2e16dc3f42..8c27916837423 100644
+--- a/Kernel/Syscalls/execve.cpp
++++ b/Kernel/Syscalls/execve.cpp
+@@ -564,6 +564,9 @@ ErrorOr&lt;void&gt; Process::do_exec(NonnullRefPtr&lt;OpenFileDescription&gt; main_program_d
+     //       and we don't want to deal with faults after this point.
+     auto new_userspace_sp = TRY(make_userspace_context_for_main_thread(new_main_thread-&gt;regs(), *load_result.stack_region.unsafe_ptr(), m_arguments, m_environment, move(auxv)));
 
-     case PT_PEEKBUF: {
-+        dbgln(&quot;PT_PEEKBUF - peer({}) caller({}) &quot;, peer_process.pid(), caller.pid());
-         Kernel::Syscall::SC_ptrace_buf_params buf_params {};
-         TRY(copy_from_user(&amp;buf_params, reinterpret_cast&lt;Kernel::Syscall::SC_ptrace_buf_params*&gt;(params.data)));
-         // This is a comparatively large allocation on the Kernel stack.
-@@ -142,11 +154,13 @@ static ErrorOr&lt;FlatPtr&gt; handle_ptrace(const Kernel::Syscall::SC_ptrace_params&amp; p
-     }
++    m_name = move(new_process_name);
++    new_main_thread-&gt;set_name(move(new_main_thread_name));
++
+     if (wait_for_tracer_at_next_execve()) {
+         // Make sure we release the ptrace lock here or the tracer will block forever.
+         ptrace_locker.unlock();
+@@ -583,9 +586,6 @@ ErrorOr&lt;void&gt; Process::do_exec(NonnullRefPtr&lt;OpenFileDescription&gt; main_program_d
 
-     case PT_PEEKDEBUG: {
-+        dbgln(&quot;PT_PEEKDEBUG - peer({}) caller({}) &quot;, peer_process.pid(), caller.pid());
-         auto data = TRY(peer-&gt;peek_debug_register(reinterpret_cast&lt;uintptr_t&gt;(params.addr)));
-         TRY(copy_to_user((FlatPtr*)params.data, &amp;data));
-         break;
-     }
-     case PT_POKEDEBUG:
-+        dbgln(&quot;PT_POKEDEBUG - peer({}) caller({}) &quot;, peer_process.pid(), caller.pid());
-         TRY(peer-&gt;poke_debug_register(reinterpret_cast&lt;uintptr_t&gt;(params.addr), params.data));
-         return 0;
-     default:
+     // NOTE: Be careful to not trigger any page faults below!
+
+-    m_name = move(new_process_name);
+-    new_main_thread-&gt;set_name(move(new_main_thread_name));
+-
+     {
+         ProtectedDataMutationScope scope { *this };
+         m_protected_values.promises = m_protected_values.execpromises.load();
+</code></pre>
+<p>After this fix, we can see that PID 40 calls <code>PT_TRACE_ME</code>, which suspended
+itself in the kernel when it called <code>execve(..)</code>. The process name is correct
+when processing the signal before we have resumed the process.</p>
+<pre><code>11.459 [#0 gdb(40:40)]: PT_TRACE_ME - caller(40)
+11.463 [#0 gdb(38:38)]: PT_ATTACH - peer(40) caller(38)
+11.463 [#0 gdb(38:38)]: PT_CONTINUE - peer(40) caller(38)
+11.463 [#0 ls(40:40)]: signal: SIGCONT resuming ls(40:40)
 </code></pre>
 
                     </main>
