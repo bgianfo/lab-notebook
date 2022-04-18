@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js ayu">
+<html lang="en" class="sidebar-visible no-js light">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -14,7 +14,6 @@
         <link rel="stylesheet" href="../css/variables.css">
         <link rel="stylesheet" href="../css/general.css">
         <link rel="stylesheet" href="../css/chrome.css">
-        <link rel="stylesheet" href="../css/print.css" media="print">
         <!-- Fonts -->
         <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
         <link rel="stylesheet" href="../fonts/fonts.css">
@@ -29,7 +28,7 @@
         <!-- Provide site root to javascript -->
         <script type="text/javascript">
             var path_to_root = "../";
-            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "ayu" : "ayu";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "ayu" : "light";
         </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
@@ -55,7 +54,7 @@
             if (theme === null || theme === undefined) { theme = default_theme; }
             var html = document.querySelector('html');
             html.classList.remove('no-js')
-            html.classList.remove('ayu')
+            html.classList.remove('light')
             html.classList.add(theme);
             html.classList.add('js');
         </script>
@@ -74,7 +73,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../background.html"><strong aria-hidden="true">1.</strong> Background</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Notes</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="../notes/2020-12-29.html"><strong aria-hidden="true">2.1.</strong> 2020-12-29: Lab Notebook Setup</a></li><li class="chapter-item expanded "><a href="../notes/2020-12-29-gpg-signing.html"><strong aria-hidden="true">2.2.</strong> 2020-12-29: Commit Signing</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> SerenityOS</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="../serenityos/gdb-port.html"><strong aria-hidden="true">3.1.</strong> 2022-02-20: Porting GDB</a></li><li class="chapter-item expanded "><a href="../serenityos/2022-01-16.html"><strong aria-hidden="true">3.2.</strong> 2022-01-06: ftrivial-auto-var-init</a></li><li class="chapter-item expanded "><a href="../serenityos/2021-01-02.html" class="active"><strong aria-hidden="true">3.3.</strong> 2021-01-02: KASAN Research</a></li><li class="chapter-item expanded "><a href="../serenityos/2021-01-01.html"><strong aria-hidden="true">3.4.</strong> 2021-01-01: Stack Canaries</a></li><li class="chapter-item expanded "><a href="../serenityos/2020-12-30.html"><strong aria-hidden="true">3.5.</strong> 2020-12-30: CodeQL Queries</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> PolarFire SOC Icicle</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="../polarfire/2020-11-26.html"><strong aria-hidden="true">4.1.</strong> 2020-11-26: Initial Setup</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../background.html">Background</a></li><li class="chapter-item expanded "><div>Notes</div><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../notes/2020-12-29.html">2020-12-29: Lab Notebook Setup</a></li><li class="chapter-item "><a href="../notes/2020-12-29-gpg-signing.html">2020-12-29: Commit Signing</a></li></ol></li><li class="chapter-item expanded "><div>Serenity OS</div><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../serenityos/2020-12-30.html">2020-12-30: CodeQL Queries</a></li><li class="chapter-item "><a href="../serenityos/2021-01-01.html">2021-01-01: Stack Canaries</a></li><li class="chapter-item expanded "><a href="../serenityos/2021-01-02.html" class="active">2021-01-02: KASAN Research</a></li><li class="chapter-item "><a href="../serenityos/2022-01-16.html">2022-01-06: GCC ftrivial-auto-var-init</a></li><li class="chapter-item "><a href="../serenityos/gdb-port.html">2022-02-20: Porting GDB</a></li></ol></li><li class="chapter-item expanded "><div>PolarFire SOC Icicle</div><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../polarfire/2020-11-26.html">2020-11-26: Initial Setup</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -92,11 +91,11 @@
                             <i class="fa fa-paint-brush"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
                         </ul>
                         <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
                             <i class="fa fa-search"></i>
@@ -106,11 +105,11 @@
                     <h1 class="menu-title">Brian&#x27;s Lab Notebook</h1>
 
                     <div class="right-buttons">
-                        <a href="../print.html" title="Print this book" aria-label="Print this book">
-                            <i id="print-button" class="fa fa-print"></i>
-                        </a>
                         <a href="http://github.com/bgianfo/lab-notebook" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/bgianfo/lab-notebook/edit/main/src/serenityos/2021-01-02.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
                         </a>
                     </div>
                 </div>
@@ -139,22 +138,22 @@
                         <h1 id="research-into-kasan-in-serenityos"><a class="header" href="#research-into-kasan-in-serenityos">Research into KASAN in SerenityOS</a></h1>
 <h2 id="introduction"><a class="header" href="#introduction">Introduction</a></h2>
 <p>Kernel Address Sanitizer (KASAN) is a dynamic analysis technology to find
-dynamic memory errors in OS Kernels. It's based on instrumentation injected
+dynamic memory errors in OS Kernels. It’s based on instrumentation injected
 by the compiler which checks all memory accesses made during execution.</p>
-<p>I'm interested in enabling KASAN for <a href="https://github.com/SerenityOS/serenity">SerenityOS</a></p>
+<p>I’m interested in enabling KASAN for <a href="https://github.com/SerenityOS/serenity">SerenityOS</a></p>
 <p><strong>Links:</strong></p>
 <ul>
 <li><a href="https://www.kernel.org/doc/html/latest/dev-tools/kasan.html">Linux KASAN Docs</a></li>
 <li><a href="https://events.static.linuxfound.org/sites/events/files/slides/LinuxCon%20North%20America%202015%20KernelAddressSanitizer.pdf">Linux KASAN Presentation</a></li>
-<li><a href="https://lwn.net/Articles/612153/">LWN &quot;The kernel address santizer&quot;</a></li>
+<li><a href="https://lwn.net/Articles/612153/">LWN “The kernel address santizer”</a></li>
 <li><a href="https://blog.netbsd.org/tnf/entry/kernel_address_sanitizer_part_3">NetBSD KASAN Blog</a></li>
 <li><a href="https://netbsd.org/%7Ekamil/eurobsdcon2018_ksanitizers.html">NetBSD KASAN Presentation</a></li>
 </ul>
-<p>Here's the Linux Kernel presentation:</p>
+<p>Here’s the Linux Kernel presentation:</p>
 <iframe align="center" width="900" height="535" src="https://www.youtube-nocookie.com/embed/capbD_aRz40" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 <h2 id="lets-start-hacking"><a class="header" href="#lets-start-hacking">Lets start hacking!</a></h2>
 <p>So my first attempt at doing anything was to just throw in <code>-fsanitize=kernel-address</code> and see
-what falls out. Here's the first diff:</p>
+what falls out. Here’s the first diff:</p>
 <pre><code class="language-diff">diff --git a/Kernel/CMakeLists.txt b/Kernel/CMakeLists.txt
 index 451060bf2..c7d9e5bec 100644
 --- a/Kernel/CMakeLists.txt
@@ -182,7 +181,7 @@ The linker complains about about a bunch of missing <strong>__asan_load{n}_noabo
 
 ... snip ...
 </code></pre>
-<p>Looking at NetBSD's implementation of KASAN shows that they have common handler macros for these functions.</p>
+<p>Looking at NetBSD’s implementation of KASAN shows that they have common handler macros for these functions.</p>
 <p>Excerpt from <a href="https://github.com/NetBSD/src/blob/86e39537781864530a5ad72a7bfebfda434bd37e/sys/kern/subr_asan.c#L1182-L1202"><code>sys/kern/subr_asan.c</code></a>:</p>
 <pre><code class="language-cpp">#define ASAN_LOAD_STORE(size)                   \
     void __asan_load##size(unsigned long);          \
@@ -206,16 +205,16 @@ The linker complains about about a bunch of missing <strong>__asan_load{n}_noabo
         kasan_shadow_check(addr, size, true, __RET_ADDR);   \
     }
 </code></pre>
-<p>I guess I'll need to stub out these symbols for serenity when I get time to work on this further.</p>
+<p>I guess I’ll need to stub out these symbols for serenity when I get time to work on this further.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../serenityos/2022-01-16.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../serenityos/2021-01-01.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
-                            <a rel="next" href="../serenityos/2021-01-01.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="../serenityos/2022-01-16.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         <div style="clear: both"></div>
@@ -224,10 +223,10 @@ The linker complains about about a bunch of missing <strong>__asan_load{n}_noabo
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../serenityos/2022-01-16.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../serenityos/2021-01-01.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
-                    <a rel="next" href="../serenityos/2021-01-01.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="../serenityos/2022-01-16.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

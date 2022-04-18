@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js ayu">
+<html lang="en" class="sidebar-visible no-js light">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -14,7 +14,6 @@
         <link rel="stylesheet" href="../css/variables.css">
         <link rel="stylesheet" href="../css/general.css">
         <link rel="stylesheet" href="../css/chrome.css">
-        <link rel="stylesheet" href="../css/print.css" media="print">
         <!-- Fonts -->
         <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
         <link rel="stylesheet" href="../fonts/fonts.css">
@@ -29,7 +28,7 @@
         <!-- Provide site root to javascript -->
         <script type="text/javascript">
             var path_to_root = "../";
-            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "ayu" : "ayu";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "ayu" : "light";
         </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
@@ -55,7 +54,7 @@
             if (theme === null || theme === undefined) { theme = default_theme; }
             var html = document.querySelector('html');
             html.classList.remove('no-js')
-            html.classList.remove('ayu')
+            html.classList.remove('light')
             html.classList.add(theme);
             html.classList.add('js');
         </script>
@@ -74,7 +73,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../background.html"><strong aria-hidden="true">1.</strong> Background</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Notes</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="../notes/2020-12-29.html" class="active"><strong aria-hidden="true">2.1.</strong> 2020-12-29: Lab Notebook Setup</a></li><li class="chapter-item expanded "><a href="../notes/2020-12-29-gpg-signing.html"><strong aria-hidden="true">2.2.</strong> 2020-12-29: Commit Signing</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> SerenityOS</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="../serenityos/gdb-port.html"><strong aria-hidden="true">3.1.</strong> 2022-02-20: Porting GDB</a></li><li class="chapter-item expanded "><a href="../serenityos/2022-01-16.html"><strong aria-hidden="true">3.2.</strong> 2022-01-06: ftrivial-auto-var-init</a></li><li class="chapter-item expanded "><a href="../serenityos/2021-01-02.html"><strong aria-hidden="true">3.3.</strong> 2021-01-02: KASAN Research</a></li><li class="chapter-item expanded "><a href="../serenityos/2021-01-01.html"><strong aria-hidden="true">3.4.</strong> 2021-01-01: Stack Canaries</a></li><li class="chapter-item expanded "><a href="../serenityos/2020-12-30.html"><strong aria-hidden="true">3.5.</strong> 2020-12-30: CodeQL Queries</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> PolarFire SOC Icicle</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="../polarfire/2020-11-26.html"><strong aria-hidden="true">4.1.</strong> 2020-11-26: Initial Setup</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../background.html">Background</a></li><li class="chapter-item expanded "><div>Notes</div><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../notes/2020-12-29.html" class="active">2020-12-29: Lab Notebook Setup</a></li><li class="chapter-item "><a href="../notes/2020-12-29-gpg-signing.html">2020-12-29: Commit Signing</a></li></ol></li><li class="chapter-item expanded "><div>Serenity OS</div><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../serenityos/2020-12-30.html">2020-12-30: CodeQL Queries</a></li><li class="chapter-item "><a href="../serenityos/2021-01-01.html">2021-01-01: Stack Canaries</a></li><li class="chapter-item "><a href="../serenityos/2021-01-02.html">2021-01-02: KASAN Research</a></li><li class="chapter-item "><a href="../serenityos/2022-01-16.html">2022-01-06: GCC ftrivial-auto-var-init</a></li><li class="chapter-item "><a href="../serenityos/gdb-port.html">2022-02-20: Porting GDB</a></li></ol></li><li class="chapter-item expanded "><div>PolarFire SOC Icicle</div><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../polarfire/2020-11-26.html">2020-11-26: Initial Setup</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -92,11 +91,11 @@
                             <i class="fa fa-paint-brush"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
                         </ul>
                         <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
                             <i class="fa fa-search"></i>
@@ -106,11 +105,11 @@
                     <h1 class="menu-title">Brian&#x27;s Lab Notebook</h1>
 
                     <div class="right-buttons">
-                        <a href="../print.html" title="Print this book" aria-label="Print this book">
-                            <i id="print-button" class="fa fa-print"></i>
-                        </a>
                         <a href="http://github.com/bgianfo/lab-notebook" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/bgianfo/lab-notebook/edit/main/src/notes/2020-12-29.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
                         </a>
                     </div>
                 </div>
@@ -138,11 +137,11 @@
                     <main>
                         <h1 id="12-29-2020-lab-notebook-setup"><a class="header" href="#12-29-2020-lab-notebook-setup">12-29-2020: Lab Notebook Setup</a></h1>
 <h2 id="introduction"><a class="header" href="#introduction">Introduction</a></h2>
-<p>I've noticed a few people whom I follow and admire online have started to keep lab notebooks.
-I first ran across the idea when I saw <a href="https://twitter.com/whitequark">@whitequark</a>'s notebook <a href="https://lab.whitequark.org/">lab.whitequark.org</a>,
-and then this evening I ran across <a href="https://twitter.com/bitshiftmask">@bitshiftmask</a>'s <a href="https://lab.jamesmunns.com/">lab.jamesmunns.com</a> by chance
+<p>I’ve noticed a few people whom I follow and admire online have started to keep lab notebooks.
+I first ran across the idea when I saw <a href="https://twitter.com/whitequark">@whitequark</a>’s notebook <a href="https://lab.whitequark.org/">lab.whitequark.org</a>,
+and then this evening I ran across <a href="https://twitter.com/bitshiftmask">@bitshiftmask</a>’s <a href="https://lab.jamesmunns.com/">lab.jamesmunns.com</a> by chance
 and saw they were doing a similar thing with <a href="https://github.com/rust-lang/mdBook">mdbook</a> which seems very easy to use and straight forward to setup and maintain.</p>
-<p>I've been on a personal knowledge management kick recently, and I've been playing whit <a href="https://obsidian.md/">obsidian.md</a> for maintaining a 'second brain'.
+<p>I’ve been on a personal knowledge management kick recently, and I’ve been playing whit <a href="https://obsidian.md/">obsidian.md</a> for maintaining a ‘second brain’.
 The idea of a public lab notebook seems like an interesting idea that I want to play with. So this first post is going to be the process of setting this up.</p>
 <h2 id="boot-strapping-the-book"><a class="header" href="#boot-strapping-the-book">Boot Strapping The Book</a></h2>
 <p>To get started with the notebook first I created a new GitHub repository <a href="https://github.com/bgianfo/lab-notebook/">github.com/bgianfo/lab-notebook</a>.
@@ -205,9 +204,9 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./book
 </code></pre>
-<p>I looked for signs that the action ran, and nothing... so double checking the pipeline
+<p>I looked for signs that the action ran, and nothing… so double checking the pipeline
 I realized that GitHub created the new default branch as <code>main</code>, not <code>master</code>. So our
-pipeline wasn't running because we are listening for push events on the wrong branch.
+pipeline wasn’t running because we are listening for push events on the wrong branch.
 Announcement: <a href="https://github.com/github/renaming">https://github.com/github/renaming</a></p>
 <p>So we need one small change to our pipeline to fix things up:</p>
 <pre><code class="language-diff">commit 78fd8a787cf6a2f49eca8e402eb6aede9caad174
@@ -235,7 +234,7 @@ will automatically create a new <a href="https://github.com/bgianfo/lab-notebook
 file in the root of your project. Next I  went to by DNS provider and added a new 
 <strong>CNAME</strong> record to my domain configuration pointing <code>lab.bjg.io -&gt; bgianfo.github.io</code>.</p>
 <p>And Voila! It Alive!</p>
-<p>Well kind of ... As soon as I pushed new changes, the sub domain no longer works.
+<p>Well kind of … As soon as I pushed new changes, the sub domain no longer works.
 That is very strange?</p>
 <p>After some digging in the CI logs, I realized that the <code>actions-gh-pages</code> action was
 deleting the CNAME file in the gh-pages branch on every push, breaking the configuration.
