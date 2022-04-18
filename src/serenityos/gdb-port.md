@@ -4,7 +4,7 @@
 
 While working on SerenityOS over the past few years, one of things I've missed
 the most is a powerful debugger. For whatever reason [Andreas][kling] and most of the
-other developers working on the system don't seem to be fans using a debuggers.
+other developers working on the system don't seem to be fans using a debugger.
 Now that I think about it, Andreas even has a video titled
 ["Why I don't use a debugger"][kling-no-debuggie] on his YouTube channel. 😁
 
@@ -35,8 +35,8 @@ x <address> - examine dword in memory
 The debugger integration with `Hack Studio` and the standalone `sdb` debugger are great first passes at some
 basic debugging infrastructure. During my time at Microsoft I have learned to love the debugger for root
 causing complicated systems level bugs and even learning how a complex program works, there's no better tool in my
-humble opinion. I think I would be a lot more productive working on Serenity if I had a more powerful debugger,
-like `gdb`. So I decided to port the `GNU Project Debugger` to SerenityOS!
+opinion. I think I would be a lot more productive working on Serenity if I had a more powerful debugger,
+like `gdb`. So I decided to try porting the **GNU Project Debugger** to SerenityOS!
 
 ## Getting Things Compiling
 
@@ -110,7 +110,7 @@ index fffb91d..defc239 100755
 ```
 
 The last thing holding us back from successfully compiling + linking gdb was that SerenityOS didn't implement `tcsendbreak(..)`
-or `tcdrain(..)`. Fortunately we didn't have to worry about supporting real terminals so a [stub implementation
+or `tcdrain(..)`. Fortunately we didn't have to worry about supporting real terminals, a no-op [stub implementation
 was sufficient for our purposes][libc-stubs].
 
 ```diff
