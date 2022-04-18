@@ -139,7 +139,7 @@
 <h2 id="introduction"><a class="header" href="#introduction">Introduction</a></h2>
 <p>While working on SerenityOS over the past few years, one of things I’ve missed
 the most is a powerful debugger. For whatever reason <a href="https://awesomekling.github.io/about/">Andreas</a> and most of the
-other developers working on the system don’t seem to be fans using a debuggers.
+other developers working on the system don’t seem to be fans using a debugger.
 Now that I think about it, Andreas even has a video titled
 <a href="https://www.youtube.com/watch?v=epcaK_bhWWA">“Why I don’t use a debugger”</a> on his YouTube channel. 😁</p>
 <p><a href="https://twitter.com/ItamarShenhar">Itamar Shenhar</a> has been doing a bunch of work on Hack Studio,
@@ -166,8 +166,8 @@ x &lt;address&gt; - examine dword in memory
 <p>The debugger integration with <code>Hack Studio</code> and the standalone <code>sdb</code> debugger are great first passes at some
 basic debugging infrastructure. During my time at Microsoft I have learned to love the debugger for root
 causing complicated systems level bugs and even learning how a complex program works, there’s no better tool in my
-humble opinion. I think I would be a lot more productive working on Serenity if I had a more powerful debugger,
-like <code>gdb</code>. So I decided to port the <code>GNU Project Debugger</code> to SerenityOS!</p>
+opinion. I think I would be a lot more productive working on Serenity if I had a more powerful debugger,
+like <code>gdb</code>. So I decided to try porting the <strong>GNU Project Debugger</strong> to SerenityOS!</p>
 <h2 id="getting-things-compiling"><a class="header" href="#getting-things-compiling">Getting Things Compiling</a></h2>
 <p>The initial work to get the debugger to compile went smoothly. The work started in 
 <a href="https://github.com/SerenityOS/serenity/pull/11278">PR #11278 - LibC+Ports: Add initial GDB 11.1 port</a>.
@@ -233,7 +233,7 @@ index fffb91d..defc239 100755
  esac
 </code></pre>
 <p>The last thing holding us back from successfully compiling + linking gdb was that SerenityOS didn’t implement <code>tcsendbreak(..)</code>
-or <code>tcdrain(..)</code>. Fortunately we didn’t have to worry about supporting real terminals so a <a href="https://github.com/SerenityOS/serenity/pull/11278/commits/99061e7af4f8f698c40581134633163d53f25a09">stub implementation
+or <code>tcdrain(..)</code>. Fortunately we didn’t have to worry about supporting real terminals, a no-op <a href="https://github.com/SerenityOS/serenity/pull/11278/commits/99061e7af4f8f698c40581134633163d53f25a09">stub implementation
 was sufficient for our purposes</a>.</p>
 <pre><code class="language-diff">diff --git a/Userland/Libraries/LibC/termios.cpp b/Userland/Libraries/LibC/termios.cpp
 index a6ca21243087f..291dafa65940f 100644
