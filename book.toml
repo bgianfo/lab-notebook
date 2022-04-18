@@ -7,12 +7,22 @@ title = "Brian's Lab Notebook"
 
 [output.html]
 git-repository-url = "http://github.com/bgianfo/lab-notebook"
-default-theme = "ayu"
+edit-url-template = "https://github.com/bgianfo/lab-notebook/edit/main/{path}"
+no-section-label = true
+curly-quotes = true
+# Disable default dark theme for now: default-theme = "ayu"
 preferred-dark-theme = "ayu"
+
+[output.html.print]
+enable = false # Hide print option
+
+[output.html.fold]
+enable = true # Enable section folding
+level = 1 # Expand the first level of folds by default
 
 #[preprocessor.admonish]
 #command = "mdbook-admonish"
 
-# See if disabling this gets the action working again
-#[output.linkcheck]
-#optional = true
+# Link check during local development
+[output.linkcheck]
+optional = true
