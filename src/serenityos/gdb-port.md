@@ -18,9 +18,9 @@ The following changes have made it into the tree to support this work:
 
 ## Introduction
 
-While working on SerenityOS over the past few years, one of things I've missed
+While working on SerenityOS over the past few years, one of the things I've missed
 the most is a powerful debugger. For whatever reason [Andreas][kling] and most of the
-other developers working on the system don't seem to be fans using a debugger.
+other developers working on the system don't seem to be fans of using a debugger.
 Now that I think about it, Andreas even has a video titled
 ["Why I don't use a debugger"][kling-no-debuggie] on his YouTube channel. 😁
 
@@ -48,17 +48,17 @@ x <address> - examine dword in memory
 ```
 
 The debugger integration with `Hack Studio` and the standalone `sdb` debugger are great first passes at some
-basic debugging infrastructure. During my time at Microsoft I have learned to love the debugger for root
+basic debugging infrastructure. During my time at Microsoft, I have learned to love the debugger for root
 causing complicated systems level bugs and even learning how a complex program works, there's no better tool in my
 opinion. I think I would be a lot more productive working on Serenity if I had a more powerful debugger,
-like `gdb`. So I decided to try porting the **GNU Project Debugger** to SerenityOS!
+like `gdb`.  That's when I decided to try porting the **GNU Project Debugger** to SerenityOS!
 
 ## Getting Things Compiling
 
 The initial work to get the debugger to compile went smoothly. The work started in 
 [PR #11278 - LibC+Ports: Add initial GDB 11.1 port][gdb-pr-initial].
 I was able to quickly hack together build support for SerenityOS.
-The gdb `configure` scripts were modified to enlighten them about the platform triplets (`i386-pc-serenity`, `x86_64-pc-serenity`), 
+I modified the gdb `configure` scripts to enlighten them about the platform triplets (`i386-pc-serenity`, `x86_64-pc-serenity`), 
 
 ```diff
 @@ -0,0 +1,55 @@
@@ -91,8 +91,7 @@ index 30087e3..11dc114 100644
      targ_defvec=i386_elf32_vec
 ```
 
-Both the `pthread_sigmask` and the pthread signal APIs were then disabled in gdb since
-they were not implemented in the system at the time.
+I also had to disable the `pthread_sigmask` and the pthread signal APIs in gdb since SerenityOS didn't implement these APIs at the time.
 
 ```diff
 diff --git a/gdbsupport/configure b/gdbsupport/configure
@@ -125,7 +124,7 @@ index fffb91d..defc239 100755
 ```
 
 The last thing holding us back from successfully compiling + linking gdb was that SerenityOS didn't implement `tcsendbreak(..)`
-or `tcdrain(..)`. Fortunately we didn't have to worry about supporting real terminals, a no-op [stub implementation
+or `tcdrain(..)`. Fortunately, we didn't have to worry about supporting real terminals, a no-op [stub implementation
 was sufficient for our purposes][libc-stubs].
 
 ```diff
@@ -177,8 +176,7 @@ index 752a2c7cbadf2..3a2382c7b9da2 100644
  int tcflush(int fd, int queue_selector);
 ```
 
-After putting all of these changes together we had the system building manually,
-so we put together a `package.sh` file to automate compilation and installation of our gdb port:
+After putting all of these changes together, we had the system building manually. I automated this process by creating a `package.sh` file to compile and install our gdb port:
 
 ```sh
 #!/usr/bin/env -S bash ../.port_include.sh
@@ -208,12 +206,12 @@ Much to my surprise, after building and installing the port, it actually kind of
 src="https://user-images.githubusercontent.com/1212/147570590-b841b53a-4971-4154-92dc-d09c530d86e5.png"/>
 
 
-As you can see the program does't seem to actually run, it just halts.
+As you can see, the program doesn't seem to actually run, it just halts.
 
 ## Bonus Bug: Kernel Process Name after `PT_TRACE_ME`
 
-After the initial port was compiling I started to debug what in our implementation was
-causing gdb to hang. If you looked at the processes under `System Monitor` you can see see that we have
+After the initial port was compiling, I started to debug what in our implementation was
+causing gdb to hang. If you looked at the processes under `System Monitor` you can see that we have
 two processes named `gdb`, one sitting `Stopped`, and one sitting `Selecting` which is serenity's way
 of indicating a process is waiting for something.
 
@@ -223,8 +221,8 @@ of indicating a process is waiting for something.
            width: 80%;"
 src="gdb-incorrect-name.png"/>
 
-This doesn't make any sense, why is gdb launching two processes and why is it hanging waiting for it self?
-One thing I was wondering is why was the `ptrace(..)` call failing with not permitted? So I quickly hacked up some logging to the ptrace
+This doesn't make any sense, why is gdb launching two processes, and why is it hanging waiting for itself?
+One thing I was wondering is why was the `ptrace(..)` call failing with not permitted? I quickly hacked up some logging to the ptrace
 implementation in the Kernel to let me see what was happening.
 
 ```diff
@@ -294,7 +292,7 @@ where we were updating the process name in `execve(..)` had a very minor bug
 which caused the process name to be incorrect. The fix was trivial, it can be
 found here: [Kernel: Set new process name in do_exec before waiting for the tracer](https://github.com/SerenityOS/serenity/pull/12464).
 
-The commit message it self provides a nice description of the interaction between
+The commit message itself provides a nice description of the interaction between
 `fork()`, `ptrace()` and `execve(..)` that are involved here: 
 
 ```diff
@@ -360,7 +358,7 @@ index 93d2e16dc3f42..8c27916837423 100644
 
 After this fix, we can see that PID 40 calls `PT_TRACE_ME`, which suspended
 itself in the kernel when it called `execve(..)`. The process name is correct
-when processing the signal before we have resumed the process.
+when processing the signal before, we have resumed the process.
 
 ```
 11.459 [#0 gdb(40:40)]: PT_TRACE_ME - caller(40)
