@@ -1,5 +1,21 @@
 # Porting GDB to SerenityOS
 
+## Summary
+
+This is a living document that describes my process of porting GDB to SerenityOS.
+The following changes have made it into the tree to support this work: 
+
+- [X] [LibC: Stub out tcsendbreak(..) and tcdrain(..)](https://github.com/SerenityOS/serenity/commit/7828d4254e7707adcb9bf7190e5c3dc7a8a7d9de)
+- [X] [Kernel: Return the actual number of CPU cores that we have](https://github.com/SerenityOS/serenity/commit/fcdd2027419607bed6b24a9ee364d6ad4cd99a41)
+- [X] [Ports: Add initial GDB 11.1 port](https://github.com/SerenityOS/serenity/commit/bd3bbd032949642ab113058e6372de40af7f0b2c)
+- [X] [LibC: Make regs.h work with compilers without concepts](https://github.com/SerenityOS/serenity/commit/1210ee9ba9b9a20346cb90e9e1baa92ee1f240d0)
+- [X] [Ports/gdb: Fix compiler -fpermissive warnings from using latest GCC](https://github.com/SerenityOS/serenity/commit/6137b9f2725c7aee874ac9ef05c4bd23033f1a29)
+- [X] [Ports/gdb: Add basic ptrace based native target for SerenityOS/i386](https://github.com/SerenityOS/serenity/commit/e308536005020bb03fd34304fd81e17716e620a9)
+- [X] [Kernel: Set new process name in `do_exec` before waiting for the tracer](https://github.com/SerenityOS/serenity/commit/70f3fa2dd2d8923fbd683dda9048938629ac5044)
+- [X] [Ports/gdb: Add descriptions to all gdb patches and remove dead code](https://github.com/SerenityOS/serenity/commit/f01e1d0c17caca18b6d4723bf7579a20395cb6cc)
+- [X] [Ports/gdb: Implement wait and mourn_inferior overrides for our target](https://github.com/SerenityOS/serenity/commit/e56262caedb0a1dc3010bfd8209682aa7fde3356)
+- [X] [Ports/gdb: Upgrade gdb to version 11.2](https://github.com/SerenityOS/serenity/commit/213df97b55f83889e405f84b294a1c754be4b184)
+
 ## Introduction
 
 While working on SerenityOS over the past few years, one of things I've missed
@@ -14,7 +30,6 @@ and as part of that has implemented `ptrace(..)` and a basic debugger known as `
 ```
 courage:~ $ sdb /bin/ls
 Program is stopped at: 0x0bfae99d (Loader.so:ELF::DynamicLinker::linker_main() +0x5ed)
-Source location: ./Userland/Libraries/LibELF/DynamicLinker.cpp:585
 
 (sdb) help
 Options:
@@ -199,7 +214,7 @@ As you can see the program does't seem to actually run, it just halts.
 
 After the initial port was compiling I started to debug what in our implementation was
 causing gdb to hang. If you looked at the processes under `System Monitor` you can see see that we have
-two processes named `gdb`, one sitting `Suspended`, and one sitting `Selecting` which is serenity's way
+two processes named `gdb`, one sitting `Stopped`, and one sitting `Selecting` which is serenity's way
 of indicating a process is waiting for something.
 
 <img style="display: block; 
@@ -209,7 +224,7 @@ of indicating a process is waiting for something.
 src="gdb-incorrect-name.png"/>
 
 This doesn't make any sense, why is gdb launching two processes and why is it hanging waiting for it self?
-One thing I was wondering is why was the strace failing? So I quickly hacked up some logging to the ptrace
+One thing I was wondering is why was the `ptrace(..)` call failing with not permitted? So I quickly hacked up some logging to the ptrace
 implementation in the Kernel to let me see what was happening.
 
 ```diff
@@ -270,10 +285,19 @@ following output:
 249.278 [#0 gdb(51:51)]: signal: SIGCONT resuming gdb(51:51)
 ```
 
-So we 
+The logging output gives us a clue, we appear to be properly forking and calling
+ptrace correctly, however the name of the process appears to be incorrect in the
+kernel? 
+
+After some digging around in the code, the issue turned out to be the location
+where we were updating the process name in `execve(..)` had a very minor bug
+which caused the process name to be incorrect. The fix was trivial, it can be
+found here: [Kernel: Set new process name in do_exec before waiting for the tracer](https://github.com/SerenityOS/serenity/pull/12464).
+
+The commit message it self provides a nice description of the interaction between
+`fork()`, `ptrace()` and `execve(..)` that are involved here: 
 
 ```diff
-From 70f3fa2dd2d8923fbd683dda9048938629ac5044 Mon Sep 17 00:00:00 2001
 From: Brian Gianforcaro <bgianf@serenityos.org>
 Date: Sat, 12 Feb 2022 08:17:42 -0800
 Subject: [PATCH] Kernel: Set new process name in `do_exec` before waiting for
