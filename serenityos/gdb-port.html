@@ -145,6 +145,8 @@ The following changes have made it into the tree to support this work: </p>
 <li><input disabled="" type="checkbox" checked=""/>
 <a href="https://github.com/SerenityOS/serenity/commit/fcdd2027419607bed6b24a9ee364d6ad4cd99a41">Kernel: Return the actual number of CPU cores that we have</a></li>
 <li><input disabled="" type="checkbox" checked=""/>
+<a href="https://github.com/SerenityOS/serenity/pull/11216">Kernel: Signals galore</a> </li>
+<li><input disabled="" type="checkbox" checked=""/>
 <a href="https://github.com/SerenityOS/serenity/commit/bd3bbd032949642ab113058e6372de40af7f0b2c">Ports: Add initial GDB 11.1 port</a></li>
 <li><input disabled="" type="checkbox" checked=""/>
 <a href="https://github.com/SerenityOS/serenity/commit/1210ee9ba9b9a20346cb90e9e1baa92ee1f240d0">LibC: Make regs.h work with compilers without concepts</a></li>
@@ -194,11 +196,39 @@ opinion. I think I would be a lot more productive working on Serenity if I had a
 like <code>gdb</code>.  That’s when I decided to try porting the <strong>GNU Project Debugger</strong> to SerenityOS!</p>
 <h2 id="getting-things-compiling"><a class="header" href="#getting-things-compiling">Getting Things Compiling</a></h2>
 <p>The initial work to get the debugger to compile went smoothly. The work started in 
-<a href="https://github.com/SerenityOS/serenity/pull/11278">PR #11278 - LibC+Ports: Add initial GDB 11.1 port</a>.
-I was able to quickly hack together build support for SerenityOS.
-I modified the gdb <code>configure</code> scripts to enlighten them about the platform triplets (<code>i386-pc-serenity</code>, <code>x86_64-pc-serenity</code>), </p>
-<pre><code class="language-diff">@@ -0,0 +1,55 @@
-diff --git a/bfd/config.bfd b/bfd/config.bfd
+<a href="https://github.com/SerenityOS/serenity/pull/11278">PR #11278 - LibC+Ports: Add initial GDB 11.1 port</a>.</p>
+<h4 id="the-port-script"><a class="header" href="#the-port-script">The Port Script</a></h4>
+<p>The first task at hand was to create a script to automate the building of the port.
+Serenity has it’s own <a href="https://github.com/SerenityOS/serenity/blob/master/Ports/README.md">ports system</a> for describing how assets should be downloaded
+and then subsequently unpackaged, and built. The initial version I arrive on looked
+something like this:</p>
+<pre><code class="language-sh">#!/usr/bin/env -S bash ../.port_include.sh
+port=gdb
+version=11.1
+useconfigure=true
+configopts=(&quot;--target=${SERENITY_ARCH}-pc-serenity&quot; &quot;--with-sysroot=/&quot; &quot;--with-build-sysroot=${SERENITY_INSTALL_ROOT}&quot; &quot;--with-newlib&quot; &quot;--enable-languages=c,c++&quot; &quot;--disable-lto&quot; &quot;--disable-nls&quot; &quot;--enable-shared&quot; &quot;--enable-default-pie&quot; &quot;--enable-host-shared&quot; &quot;--enable-threads=posix&quot;)
+files=&quot;https://ftpmirror.gnu.org/gnu/gdb/gdb-${version}.tar.xz gdb-${version}.tar.xz cccfcc407b20d343fb320d4a9a2110776dd3165118ffd41f4b1b162340333f94&quot;
+makeopts+=(&quot;all&quot;)
+installopts=(&quot;DESTDIR=${SERENITY_INSTALL_ROOT}&quot;)
+depends=(&quot;gmp&quot; &quot;binutils&quot;)
+auth_type=&quot;sha256&quot;
+
+# We only have a stub of getrusage(..)
+export ac_cv_func_getrusage=no
+
+# We don't support the madvise options that are used.
+export ac_cv_func_madvise=no
+</code></pre>
+<p>We can see this does a few things:</p>
+<ul>
+<li>Specifies what version of the gdb source to download and a sha256 hash to validate that <code>.tar.xz</code> package with.</li>
+<li>Specifies that the port expects us to run the <code>configure</code> script.</li>
+<li>Specifies the configure options, which are mostly about how to target serenity’s headers and libs, and what options to enable or disable.</li>
+<li>Expresses a dependency on the <code>gmp</code> and <code>binutils</code> ports.</li>
+</ul>
+<h4 id="missing-dependencies"><a class="header" href="#missing-dependencies">Missing Dependencies</a></h4>
+<p>The next step was to modify the gdb <code>configure</code> scripts to enlighten them about the platform triplets (<code>i386-pc-serenity</code>, <code>x86_64-pc-serenity</code>), </p>
+<pre><code class="language-diff">diff --git a/bfd/config.bfd b/bfd/config.bfd
 index 30087e3..11dc114 100644
 --- a/bfd/config.bfd
 +++ b/bfd/config.bfd
@@ -226,7 +256,26 @@ index 30087e3..11dc114 100644
    i[3-7]86-*-lynxos*)
      targ_defvec=i386_elf32_vec
 </code></pre>
-<p>I also had to disable the <code>pthread_sigmask</code> and the pthread signal APIs in gdb since SerenityOS didn’t implement these APIs at the time.</p>
+<p>With the triplets in place I was able to actually build some code. I quickly
+found some pieces we were missing. One of them was <code>sigtimedwait()</code>, I <a href="https://discord.com/channels/830522505605283862/830525093905170492/919194323969540146">mentioned
+it in the project’s discord</a> and it just so happened that
+<a href="https://github.com/IdanHo">Idan Horowitz</a> had recently worked on the signal handling subsystem in the Kernel offered to help me out.</p>
+<pre><code>bgianf — 12/11/2021
+If anyone is interested in some kernel work,
+I need sigtimedwait() for a port of GDB.
+I'll get around to it if no one is interested...
+but just thought I'd throw it out there in case someone is collecting yaks 
+
+IdanHo — 12/11/2021
+I just touched signal handling a bunch, so I'll try looking into it
+</code></pre>
+<p>I continued to work in parallel, but the next morning I woke up to a nice little
+gift, Idan had sent out <a href="https://github.com/SerenityOS/serenity/pull/11216">Kernel+LibC: Signals galore</a> which included
+support for <code>sigtimedwait()</code>!</p>
+<p>The next issues I encountered  were the <code>pthread_sigmask</code> and the pthread signal APIs
+that gdb can use. SerenityOS didn’t implement these APIs at the time, but it was easy
+enough to disable them to make progress as gdb appeared to have fallback mechanisms when
+they were disabled. This ended up being a patch to the <code>configure</code> script:</p>
 <pre><code class="language-diff">diff --git a/gdbsupport/configure b/gdbsupport/configure
 index a9dd02c..3c5bcf5 100755
 --- a/gdbsupport/configure
@@ -305,26 +354,15 @@ index 752a2c7cbadf2..3a2382c7b9da2 100644
  int tcflow(int fd, int action);
  int tcflush(int fd, int queue_selector);
 </code></pre>
-<p>After putting all of these changes together, we had the system building manually. I automated this process by creating a <code>package.sh</code> file to compile and install our gdb port:</p>
-<pre><code class="language-sh">#!/usr/bin/env -S bash ../.port_include.sh
-port=gdb
-version=11.1
-useconfigure=true
-configopts=(&quot;--target=${SERENITY_ARCH}-pc-serenity&quot; &quot;--with-sysroot=/&quot; &quot;--with-build-sysroot=${SERENITY_INSTALL_ROOT}&quot; &quot;--with-newlib&quot; &quot;--enable-languages=c,c++&quot; &quot;--disable-lto&quot; &quot;--disable-nls&quot; &quot;--enable-shared&quot; &quot;--enable-default-pie&quot; &quot;--enable-host-shared&quot; &quot;--enable-threads=posix&quot;)
-files=&quot;https://ftpmirror.gnu.org/gnu/gdb/gdb-${version}.tar.xz gdb-${version}.tar.xz cccfcc407b20d343fb320d4a9a2110776dd3165118ffd41f4b1b162340333f94&quot;
-makeopts+=(&quot;all&quot;)
-installopts=(&quot;DESTDIR=${SERENITY_INSTALL_ROOT}&quot;)
-depends=(&quot;gmp&quot; &quot;binutils&quot;)
-auth_type=&quot;sha256&quot;
-
-# We only have a stub of getrusage(..)
-export ac_cv_func_getrusage=no
-
-# We don't support the madvise options that are used.
-export ac_cv_func_madvise=no
-</code></pre>
-<p>Much to my surprise, after building and installing the port, it actually kind of ran the first time I tried it!</p>
-<p><img style="display: block; 
+<p>After putting all of these changes together, I had a basic gdb build successfully
+compiling.</p>
+<h4 id="gdb-enlightenment"><a class="header" href="#gdb-enlightenment">GDB Enlightenment</a></h4>
+<h2 id="testing"><a class="header" href="#testing">Testing</a></h2>
+<p>Now that we had some basic code setup and a basic understanding of gdb’s code
+is put together it was time to start trying to see what was left to get something
+really working.
+Much to my surprise, we could see real signs of life after including our basic serenity support.</p>
+<p><img style="display: block;
            margin-left: auto;
            margin-right: auto;
            width: 80%;"
