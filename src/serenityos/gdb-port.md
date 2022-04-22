@@ -7,6 +7,7 @@ The following changes have made it into the tree to support this work:
 
 - [X] [LibC: Stub out tcsendbreak(..) and tcdrain(..)](https://github.com/SerenityOS/serenity/commit/7828d4254e7707adcb9bf7190e5c3dc7a8a7d9de)
 - [X] [Kernel: Return the actual number of CPU cores that we have](https://github.com/SerenityOS/serenity/commit/fcdd2027419607bed6b24a9ee364d6ad4cd99a41)
+- [X] [Kernel: Signals galore][signals-galore] 
 - [X] [Ports: Add initial GDB 11.1 port](https://github.com/SerenityOS/serenity/commit/bd3bbd032949642ab113058e6372de40af7f0b2c)
 - [X] [LibC: Make regs.h work with compilers without concepts](https://github.com/SerenityOS/serenity/commit/1210ee9ba9b9a20346cb90e9e1baa92ee1f240d0)
 - [X] [Ports/gdb: Fix compiler -fpermissive warnings from using latest GCC](https://github.com/SerenityOS/serenity/commit/6137b9f2725c7aee874ac9ef05c4bd23033f1a29)
@@ -57,11 +58,45 @@ like `gdb`.  That's when I decided to try porting the **GNU Project Debugger** t
 
 The initial work to get the debugger to compile went smoothly. The work started in 
 [PR #11278 - LibC+Ports: Add initial GDB 11.1 port][gdb-pr-initial].
-I was able to quickly hack together build support for SerenityOS.
-I modified the gdb `configure` scripts to enlighten them about the platform triplets (`i386-pc-serenity`, `x86_64-pc-serenity`), 
+
+#### The Port Script
+
+The first task at hand was to create a script to automate the building of the port.
+Serenity has it's own [ports system][ports] for describing how assets should be downloaded
+and then subsequently unpackaged, and built. The initial version I arrive on looked
+something like this:
+
+```sh
+#!/usr/bin/env -S bash ../.port_include.sh
+port=gdb
+version=11.1
+useconfigure=true
+configopts=("--target=${SERENITY_ARCH}-pc-serenity" "--with-sysroot=/" "--with-build-sysroot=${SERENITY_INSTALL_ROOT}" "--with-newlib" "--enable-languages=c,c++" "--disable-lto" "--disable-nls" "--enable-shared" "--enable-default-pie" "--enable-host-shared" "--enable-threads=posix")
+files="https://ftpmirror.gnu.org/gnu/gdb/gdb-${version}.tar.xz gdb-${version}.tar.xz cccfcc407b20d343fb320d4a9a2110776dd3165118ffd41f4b1b162340333f94"
+makeopts+=("all")
+installopts=("DESTDIR=${SERENITY_INSTALL_ROOT}")
+depends=("gmp" "binutils")
+auth_type="sha256"
+
+# We only have a stub of getrusage(..)
+export ac_cv_func_getrusage=no
+
+# We don't support the madvise options that are used.
+export ac_cv_func_madvise=no
+```
+
+We can see this does a few things:
+- Specifies what version of the gdb source to download and a sha256 hash to validate that `.tar.xz` package with.
+- Specifies that the port expects us to run the `configure` script.
+- Specifies the configure options, which are mostly about how to target serenity's headers and libs, and what options to enable or disable.
+- Expresses a dependency on the `gmp` and `binutils` ports.
+
+
+#### Missing Dependencies
+
+The next step was to modify the gdb `configure` scripts to enlighten them about the platform triplets (`i386-pc-serenity`, `x86_64-pc-serenity`), 
 
 ```diff
-@@ -0,0 +1,55 @@
 diff --git a/bfd/config.bfd b/bfd/config.bfd
 index 30087e3..11dc114 100644
 --- a/bfd/config.bfd
@@ -91,7 +126,30 @@ index 30087e3..11dc114 100644
      targ_defvec=i386_elf32_vec
 ```
 
-I also had to disable the `pthread_sigmask` and the pthread signal APIs in gdb since SerenityOS didn't implement these APIs at the time.
+With the triplets in place I was able to actually build some code. I quickly
+found some pieces we were missing. One of them was `sigtimedwait()`, I [mentioned
+it in the project's discord][discord-sigtimedwait] and it just so happened that
+[Idan Horowitz][idanho] had recently worked on the signal handling subsystem in the Kernel offered to help me out.
+
+```
+bgianf — 12/11/2021
+If anyone is interested in some kernel work,
+I need sigtimedwait() for a port of GDB.
+I'll get around to it if no one is interested...
+but just thought I'd throw it out there in case someone is collecting yaks 
+
+IdanHo — 12/11/2021
+I just touched signal handling a bunch, so I'll try looking into it
+```
+
+I continued to work in parallel, but the next morning I woke up to a nice little
+gift, Idan had sent out [Kernel+LibC: Signals galore][signals-galore] which included
+support for `sigtimedwait()`!
+
+The next issues I encountered  were the `pthread_sigmask` and the pthread signal APIs
+that gdb can use. SerenityOS didn't implement these APIs at the time, but it was easy
+enough to disable them to make progress as gdb appeared to have fallback mechanisms when
+they were disabled. This ended up being a patch to the `configure` script:
 
 ```diff
 diff --git a/gdbsupport/configure b/gdbsupport/configure
@@ -176,35 +234,23 @@ index 752a2c7cbadf2..3a2382c7b9da2 100644
  int tcflush(int fd, int queue_selector);
 ```
 
-After putting all of these changes together, we had the system building manually. I automated this process by creating a `package.sh` file to compile and install our gdb port:
+After putting all of these changes together, I had a basic gdb build successfully
+compiling.
 
-```sh
-#!/usr/bin/env -S bash ../.port_include.sh
-port=gdb
-version=11.1
-useconfigure=true
-configopts=("--target=${SERENITY_ARCH}-pc-serenity" "--with-sysroot=/" "--with-build-sysroot=${SERENITY_INSTALL_ROOT}" "--with-newlib" "--enable-languages=c,c++" "--disable-lto" "--disable-nls" "--enable-shared" "--enable-default-pie" "--enable-host-shared" "--enable-threads=posix")
-files="https://ftpmirror.gnu.org/gnu/gdb/gdb-${version}.tar.xz gdb-${version}.tar.xz cccfcc407b20d343fb320d4a9a2110776dd3165118ffd41f4b1b162340333f94"
-makeopts+=("all")
-installopts=("DESTDIR=${SERENITY_INSTALL_ROOT}")
-depends=("gmp" "binutils")
-auth_type="sha256"
+#### GDB Enlightenment
 
-# We only have a stub of getrusage(..)
-export ac_cv_func_getrusage=no
+## Testing
 
-# We don't support the madvise options that are used.
-export ac_cv_func_madvise=no
-```
+Now that we had some basic code setup and a basic understanding of gdb's code
+is put together it was time to start trying to see what was left to get something
+really working.
+Much to my surprise, we could see real signs of life after including our basic serenity support.
 
-Much to my surprise, after building and installing the port, it actually kind of ran the first time I tried it!
-
-<img style="display: block; 
+<img style="display: block;
            margin-left: auto;
            margin-right: auto;
            width: 80%;"
 src="https://user-images.githubusercontent.com/1212/147570590-b841b53a-4971-4154-92dc-d09c530d86e5.png"/>
-
 
 As you can see, the program doesn't seem to actually run, it just halts.
 
@@ -374,3 +420,7 @@ when processing the signal before, we have resumed the process.
 [sdb-pr-initial]: https://github.com/SerenityOS/serenity/pull/1885
 [libc-stubs]: https://github.com/SerenityOS/serenity/pull/11278/commits/99061e7af4f8f698c40581134633163d53f25a09
 [docs-gdb-tracing]: https://sourceware.org/gdb/current/onlinedocs/gdb/Debugging-Output.html#Debugging-Output 
+[ports]: https://github.com/SerenityOS/serenity/blob/master/Ports/README.md
+[idanho]: https://github.com/IdanHo
+[discord-sigtimedwait]: https://discord.com/channels/830522505605283862/830525093905170492/919194323969540146
+[signals-galore]: https://github.com/SerenityOS/serenity/pull/11216
