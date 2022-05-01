@@ -9,9 +9,9 @@ The following changes have made it into the tree to support this work:
 - [ ] [Kernel: Return the actual number of CPU cores that we have](https://github.com/SerenityOS/serenity/commit/fcdd2027419607bed6b24a9ee364d6ad4cd99a41)
 - [X] [Kernel: Signals galore][signals-galore] 
 - [X] [Ports: Add initial GDB 11.1 port](https://github.com/SerenityOS/serenity/commit/bd3bbd032949642ab113058e6372de40af7f0b2c)
-- [ ] [LibC: Make regs.h work with compilers without concepts](https://github.com/SerenityOS/serenity/commit/1210ee9ba9b9a20346cb90e9e1baa92ee1f240d0)
+- [X] [LibC: Make regs.h work with compilers without concepts](https://github.com/SerenityOS/serenity/commit/1210ee9ba9b9a20346cb90e9e1baa92ee1f240d0)
 - [X] [Ports/gdb: Fix compiler -fpermissive warnings from using latest GCC](https://github.com/SerenityOS/serenity/commit/6137b9f2725c7aee874ac9ef05c4bd23033f1a29)
-- [ ] [Ports/gdb: Add basic ptrace based native target for SerenityOS/i386](https://github.com/SerenityOS/serenity/commit/e308536005020bb03fd34304fd81e17716e620a9)
+- [X] [Ports/gdb: Add basic ptrace based native target for SerenityOS/i386](https://github.com/SerenityOS/serenity/commit/e308536005020bb03fd34304fd81e17716e620a9)
 - [X] [Kernel: Set new process name in `do_exec` before waiting for the tracer](https://github.com/SerenityOS/serenity/commit/70f3fa2dd2d8923fbd683dda9048938629ac5044)
 - [X] [Ports/gdb: Add descriptions to all gdb patches and remove dead code](https://github.com/SerenityOS/serenity/commit/f01e1d0c17caca18b6d4723bf7579a20395cb6cc)
 - [ ] [Ports/gdb: Implement wait and mourn_inferior overrides for our target](https://github.com/SerenityOS/serenity/commit/e56262caedb0a1dc3010bfd8209682aa7fde3356)
@@ -57,9 +57,10 @@ like `gdb`.  That's when I decided to try porting the **GNU Project Debugger** t
 ## Getting Things Compiling
 
 The initial work to get the debugger to compile went smoothly. The work started in 
+
 [PR #11278 - LibC+Ports: Add initial GDB 11.1 port][gdb-pr-initial].
 
-#### The Port Script
+#### Setting up the port script
 
 The first task at hand was to create a script to automate the building of the port.
 Serenity has it's own [ports system][ports] for describing how assets should be downloaded
@@ -182,64 +183,313 @@ index fffb91d..defc239 100755
 ```
 
 The last thing holding us back from successfully compiling + linking gdb was that SerenityOS didn't implement `tcsendbreak(..)`
-or `tcdrain(..)`. Fortunately, we didn't have to worry about supporting real terminals, a no-op [stub implementation
-was sufficient for our purposes][libc-stubs].
-
-```diff
-diff --git a/Userland/Libraries/LibC/termios.cpp b/Userland/Libraries/LibC/termios.cpp
-index a6ca21243087f..291dafa65940f 100644
---- a/Userland/Libraries/LibC/termios.cpp
-+++ b/Userland/Libraries/LibC/termios.cpp
-@@ -30,6 +30,13 @@ int tcsetattr(int fd, int optional_actions, const struct termios* t)
-     return -1;
- }
- 
-+// https://pubs.opengroup.org/onlinepubs/009695399/functions/tcsendbreak.html
-+int tcsendbreak([[maybe_unused]] int fd, [[maybe_unused]] int duration)
-+{
-+    // FIXME: Implement this for real.
-+    return 0;
-+}
-+
- int tcflow([[maybe_unused]] int fd, [[maybe_unused]] int action)
- {
-     errno = EINVAL;
-@@ -41,6 +48,13 @@ int tcflush(int fd, int queue_selector)
-     return ioctl(fd, TCFLSH, queue_selector);
- }
- 
-+// https://pubs.opengroup.org/onlinepubs/009695399/functions/tcdrain.html
-+int tcdrain([[maybe_unused]] int fd)
-+{
-+    // FIXME: Implement this for real.
-+    return 0;
-+}
-+
- speed_t cfgetispeed(const struct termios* tp)
- {
-     return tp->c_ispeed;
-diff --git a/Userland/Libraries/LibC/termios.h b/Userland/Libraries/LibC/termios.h
-index 752a2c7cbadf2..3a2382c7b9da2 100644
---- a/Userland/Libraries/LibC/termios.h
-+++ b/Userland/Libraries/LibC/termios.h
-@@ -10,8 +10,10 @@
- 
- __BEGIN_DECLS
- 
-+int tcdrain(int fd);
- int tcgetattr(int fd, struct termios*);
- int tcsetattr(int fd, int optional_actions, const struct termios*);
-+int tcsendbreak(int fd, int duration);
- int tcflow(int fd, int action);
- int tcflush(int fd, int queue_selector);
-```
-
-After putting all of these changes together, I had a basic gdb build successfully
-compiling.
+or `tcdrain(..)`. I stubbed these calls to return error and set `errno = ENOTSUP`.
+After putting all of these changes together, I had a basic gdb build successfully compiling!
 
 #### GDB Enlightenment
 
-## Testing
+Now that we had gdb building, we could move on to the actual meat of the problem. How do we enlighten the debugger
+to know about SerenityOS as a platform?
+
+Looking at the gdb source, there is a pattern of having a few different files:
+  -  `<os>-nat.c`
+  -  `<architecture>-<os>-nat.c`
+  -  `<os>-tdep.c`
+  -  `<architecture>-<os>-tdep.c`
+
+Here are the files for FreeBSD for example:
+
+```
+~/src/serenity/Ports/gdb/gdb-11.2/gdb$ ls *fbsd*.c
+aarch64-fbsd-nat.c   arm-fbsd-tdep.c   mips-fbsd-nat.c	 riscv-fbsd-tdep.c
+aarch64-fbsd-tdep.c  fbsd-nat.c        mips-fbsd-tdep.c  sparc64-fbsd-nat.c
+amd64-fbsd-nat.c     fbsd-tdep.c       ppc-fbsd-nat.c	 sparc64-fbsd-tdep.c
+amd64-fbsd-tdep.c    i386-fbsd-nat.c   ppc-fbsd-tdep.c
+arm-fbsd-nat.c	     i386-fbsd-tdep.c  riscv-fbsd-nat.c
+```
+
+After reading some code the pattern seems to be that gdb places "target-dependent code"
+in the `-tdep.c` files, and "native-dependent code" in the `-nat.c` files.
+I also saw that there appears to be a generic `ptrace()` based target that a few other
+operating systems derive from. In the source it's called `inf_ptrace_target`.
+As I mentioned at the beginning of this post, serenity has basic ptrace support, so reusing
+the ptrace inferior target sounded like a good initial game plane.
+
+After hacking around for a while on and off I eventually had a basic target which should
+theoretically allow us to use gdb to ptrace a serenity program. The broad strokes included:
+
+- Deciding to target Serenity on i386/i686 to start, amd64 will follow later.
+- Hooking up our new files to build when targeting SerenityOS.
+- Mapping Serenity's layout of i386 CPU registers to gdb's.
+- Adding a new `i386_serenity_nat_target` devied from `serenity_nat_target`.
+- Adding a new OS ABI in gdb for SerenityOS
+- Adding initialization routines to our new target and OS ABI with gdb at runtime. 
+
+The initial version looked something like this, it was later cleaned up as [Ports/gdb: Add basic ptrace based native target for SerenityOS/i386](https://github.com/SerenityOS/serenity/commit/e308536005020bb03fd34304fd81e17716e620a9):
+```diff
+diff --git a/gdb/configure.nat b/gdb/configure.nat
+index e34cccf..38b687e 100644
+--- a/gdb/configure.nat
++++ b/gdb/configure.nat
+@@ -86,6 +86,9 @@ case ${gdb_host} in
+     darwin)
+ 	NATDEPFILES='fork-child.o nat/fork-inferior.o darwin-nat.o \
+ 	    darwin-nat-info.o'
++    ;;
++    serenity)
++	NATDEPFILES='fork-child.o nat/fork-inferior.o inf-ptrace.o'
+ 	;;
+     sol2)
+ 	NATDEPFILES='fork-child.o nat/fork-inferior.o \
+@@ -477,6 +480,14 @@ case ${gdb_host} in
+ 		;;
+ 	esac
+ 	;;
++    serenity)
++	case ${gdb_host_cpu} in
++	    i386)
++		# Host: SerenityOS/x86_64 ELF
++		NATDEPFILES="${NATDEPFILES} amd64-nat.o serenity-nat.o i386-serenity-nat.o"
++		;;
++	esac
++	;;
+     sol2)
+ 	case ${gdb_host_cpu} in
+ 	    i386)
+diff --git a/gdb/configure.tgt b/gdb/configure.tgt
+index 97a5a57..886542f 100644
+--- a/gdb/configure.tgt
++++ b/gdb/configure.tgt
+@@ -291,6 +291,10 @@ i[34567]86-*-nto*)
+ 	gdb_target_obs="solib-svr4.o \
+ 			i386-nto-tdep.o nto-tdep.o"
+ 	;;
++i[34567]86-*-serenity*)
++	# Target: SerenityOS/i386
++	gdb_target_obs="i386-serenity-tdep.o serenity-tdep.o"
++	;;
+ i[34567]86-*-solaris2* | x86_64-*-solaris2*)
+ 	# Target: Solaris x86_64
+ 	gdb_target_obs="${i386_tobjs} ${amd64_tobjs} \
+
+diff --git a/gdb/i386-serenity-nat.c b/gdb/i386-serenity-nat.c
+new file mode 100644
+index 0000000..034252a
+--- /dev/null
++++ b/gdb/i386-serenity-nat.c
+@@ -0,0 +1,101 @@
++/* Native-dependent code for SerenityOS/i386. */
++
++#include "defs.h"
++#include "gdbcore.h"
++#include "regcache.h"
++#include "regset.h"
++#include "target.h"
++
++#include <sys/arch/i386/regs.h>
++#include <sys/ptrace.h>
++
++#include "i386-tdep.h"
++#include "serenity-nat.h"
++
++/* Register maps.  */
++
++static const struct regcache_map_entry i386_serenity_gregmap[] =
++{
++    { 1, I386_EAX_REGNUM, 0 }, 
++    { 1, I386_ECX_REGNUM, 0 }, 
++    { 1, I386_EDX_REGNUM, 0 }, 
++    { 1, I386_EBX_REGNUM, 0 }, 
++    { 1, I386_ESP_REGNUM, 0 }, 
++    { 1, I386_EBP_REGNUM, 0 }, 
++    { 1, I386_ESI_REGNUM, 0 }, 
++    { 1, I386_EDI_REGNUM, 0 }, 
++    { 1, I386_EIP_REGNUM, 0 }, 
++    { 1, I386_EFLAGS_REGNUM, 0 }, 
++    { 1, I386_CS_REGNUM, 0 }, 
++    { 1, I386_SS_REGNUM, 0 }, 
++    { 1, I386_DS_REGNUM, 0 }, 
++    { 1, I386_ES_REGNUM, 0 }, 
++    { 1, I386_FS_REGNUM, 0 }, 
++    { 1, I386_GS_REGNUM, 0 }, 
++    { 0 },
++};
++
++const struct regset i386_serenity_gregset =
++{
++    i386_serenity_gregmap, regcache_supply_regset, regcache_collect_regset
++};
++
++class i386_serenity_nat_target final : public serenity_nat_target
++{
++  void fetch_registers (struct regcache* cache, int regnum) override
++  {
++    if (regnum == -1) {
++      pid_t pid = get_ptrace_pid (cache->ptid ());
++      PtraceRegisters regs;
++
++      if (ptrace (PT_GETREGS, pid, &regs, 0) == -1)
++        perror_with_name (_("Couldn't get registers"));
++
++      cache->supply_regset (&i386_serenity_gregset, regnum, &regs,
++              sizeof (regs));
++    }
++  };
++
++  void store_registers (struct regcache* cache, int regnum) override
++  {
++    if (regnum == -1) {
++      pid_t pid = get_ptrace_pid (cache->ptid ());
++      PtraceRegisters regs {};
++
++      if (ptrace (PT_GETREGS, pid, (PTRACE_TYPE_ARG3) &regs, 0) == -1)
++        perror_with_name (_("Couldn't get registers"));
++
++      cache->collect_regset (&i386_serenity_gregset, regnum, &regs,
++			       sizeof (regs));
++
++      if (ptrace (PT_SETREGS, pid, (PTRACE_TYPE_ARG3) &regs, 0) == -1)
++        perror_with_name (_("Couldn't write registers"));
++    }
++  };
++};
++
++static i386_serenity_nat_target the_i386_serenity_nat_target;
++
++void _initialize_i386_serenity_nat ();
++void
++_initialize_i386_serenity_nat ()
++{
++  add_inf_child_target (&the_i386_serenity_nat_target);
++}
+
+diff --git a/gdb/i386-serenity-tdep.c b/gdb/i386-serenity-tdep.c
+new file mode 100644
+index 0000000..d384061
+--- /dev/null
++++ b/gdb/i386-serenity-tdep.c
+@@ -0,0 +1,27 @@
++/* Target-dependent code for SerenityOS/i386. */
++
++#include "defs.h"
++#include "arch-utils.h"
++#include "gdbcore.h"
++#include "osabi.h"
++#include "regcache.h"
++
++/* Implement the 'init_osabi' method of struct gdb_osabi_handler.  */
++static void
++i386_serenity_init_abi (struct gdbarch_info info, struct gdbarch *gdbarch)
++{
++  /* Generic SerenityOS support.  */
++  serenity_init_abi (info, gdbarch);
++}
++
++void _initialize_i386_serenity_tdep ();
++void
++_initialize_i386_serenity_tdep ()
++{
++  gdbarch_register_osabi (bfd_arch_i386, 0, GDB_OSABI_SERENITYOS,
++			  i386_serenity_init_abi);
++}
+
+diff --git a/gdb/osabi.c b/gdb/osabi.c
+index aabf895..28789e8 100644
+--- a/gdb/osabi.c
++++ b/gdb/osabi.c
+@@ -82,6 +82,7 @@ static const struct osabi_names gdb_osabi_names[] =
+   { "Newlib", NULL },
+   { "SDE", NULL },
+   { "PikeOS", NULL },
++  { "SerenityOS", NULL },
+
+   { "<invalid>", NULL }
+ };
+
+diff --git a/gdb/osabi.h b/gdb/osabi.h
+index 1ecbed4..73c5549 100644
+--- a/gdb/osabi.h
++++ b/gdb/osabi.h
+@@ -46,6 +46,7 @@ enum gdb_osabi
+   GDB_OSABI_NEWLIB,
+   GDB_OSABI_SDE,
+   GDB_OSABI_PIKEOS,
++  GDB_OSABI_SERENITYOS,
+
+   GDB_OSABI_INVALID		/* keep this last */
+ };
+
+diff --git a/gdb/serenity-nat.c b/gdb/serenity-nat.c
+new file mode 100644
+index 0000000..ff740d4
+--- /dev/null
++++ b/gdb/serenity-nat.c
+@@ -0,0 +1,13 @@
++/* Native-dependent code for SerenityOS  */
++
++#include "defs.h"
++#include "gdbthread.h"
++#include "inferior.h"
++#include "target.h"
++
++#include <sys/types.h>
++#include <sys/ptrace.h>
++#include "gdbsupport/gdb_wait.h"
++
++#include "inf-child.h"
++#include "serenity-nat.h"
+
+diff --git a/gdb/serenity-nat.h b/gdb/serenity-nat.h
+new file mode 100644
+index 0000000..ac3cfaa
+--- /dev/null
++++ b/gdb/serenity-nat.h
+@@ -0,0 +1,34 @@
++/* Native-dependent code for SerenityOS.  */
++
++#ifndef SERENITYOS_NAT_H
++#define SERENITYOS_NAT_H
++
++#include "inf-ptrace.h"
++
++/* A prototype generic Serenity target.
++   A concrete instance should override it with local methods. 
++*/
++
++class serenity_nat_target : public inf_ptrace_target
++{
++};
++
++#endif /* serenity-nat.h */
+```
+
+Once I tried to get this compiling I ran into a funny issue with SerenityOS's LibC and `ptrace()` implementation.
+The implementation exposes registers via a struct `PtraceRegisters`, which assumed that everything that would ever use
+it would be using the SerenityOS AK[^ak-footnote] library, so it pulled in private types. As you can imagine this caused
+a few problems as GDB has no idea about these types, and we were leaking implementation details from our LibC to a random port.
+This was easy enough to fix, we just needed to avoid using Serenity specific types and defining C++ functions via this C ABI.
+The diff is a bit boring, so I won't include the whole thing here 😁. 
+After this change to LibC we were back in business and our new serenity target was compiling.
+
+Commit Link: [LibC: Make regs.h work with compilers without concepts](https://github.com/SerenityOS/serenity/commit/1210ee9ba9b9a20346cb90e9e1baa92ee1f240d0)
+
+## Testing & Debugging
+
+At this stage we had gdb compiling, and it had the basic knowledge about the serenity platform.
+So lets try to start it up and see what happens!
+
+The very first time I tried to start `gdb` on the system, it immediately appeared to hang.
+Since I did not have a working debugger, I just used the Serenity Profiler to see where the code
+was spinning. I was able to narrow down the problem down to gdb not gracefully handling the `tcdrain(..)` or `tcsendbreak(..)` failure.
+These were the same functions I stubbed out eariler in Serenity's LibC, so they always return failure.
+Returning an error here was causing `gdb` to just spin trying to call it over and over again.
+Fortunately, we did not have to worry about supporting real terminals, only pseudo terminals, so just changing
+the implementation to do nothing but claim success was sufficient for our purposes.
+Commit Link: [LibC: Stub out tcsendbreak(..) and tcdrain()][libc-stubs]:
+
+
+This was another checkpoint for me
+
 
 Now that we had some basic code setup and a basic understanding of gdb's code
 is put together it was time to start trying to see what was left to get something
@@ -413,6 +663,11 @@ when processing the signal before, we have resumed the process.
 11.463 [#0 ls(40:40)]: signal: SIGCONT resuming ls(40:40)
 ```
 
+
+<!-- References -->
+
+[^ak-footnote]: [AK][ak-link] is short for Agnostic Kit, the common C++ library to be used in Kernel or UserMode in the SerenityOS code base.
+
 [kling-no-debuggie]: https://www.youtube.com/watch?v=epcaK_bhWWA
 [kling]: https://awesomekling.github.io/about/
 [itamar-twitter]: https://twitter.com/ItamarShenhar 
@@ -424,3 +679,4 @@ when processing the signal before, we have resumed the process.
 [idanho]: https://github.com/IdanHo
 [discord-sigtimedwait]: https://discord.com/channels/830522505605283862/830525093905170492/919194323969540146
 [signals-galore]: https://github.com/SerenityOS/serenity/pull/11216
+[ak-link]: https://github.com/SerenityOS/serenity/blob/master/AK
