@@ -142,23 +142,23 @@ The following changes have made it into the tree to support this work: </p>
 <ul>
 <li><input disabled="" type="checkbox" checked=""/>
 <a href="https://github.com/SerenityOS/serenity/commit/7828d4254e7707adcb9bf7190e5c3dc7a8a7d9de">LibC: Stub out tcsendbreak(..) and tcdrain(..)</a></li>
-<li><input disabled="" type="checkbox" checked=""/>
+<li><input disabled="" type="checkbox"/>
 <a href="https://github.com/SerenityOS/serenity/commit/fcdd2027419607bed6b24a9ee364d6ad4cd99a41">Kernel: Return the actual number of CPU cores that we have</a></li>
 <li><input disabled="" type="checkbox" checked=""/>
 <a href="https://github.com/SerenityOS/serenity/pull/11216">Kernel: Signals galore</a> </li>
 <li><input disabled="" type="checkbox" checked=""/>
 <a href="https://github.com/SerenityOS/serenity/commit/bd3bbd032949642ab113058e6372de40af7f0b2c">Ports: Add initial GDB 11.1 port</a></li>
-<li><input disabled="" type="checkbox" checked=""/>
+<li><input disabled="" type="checkbox"/>
 <a href="https://github.com/SerenityOS/serenity/commit/1210ee9ba9b9a20346cb90e9e1baa92ee1f240d0">LibC: Make regs.h work with compilers without concepts</a></li>
 <li><input disabled="" type="checkbox" checked=""/>
 <a href="https://github.com/SerenityOS/serenity/commit/6137b9f2725c7aee874ac9ef05c4bd23033f1a29">Ports/gdb: Fix compiler -fpermissive warnings from using latest GCC</a></li>
-<li><input disabled="" type="checkbox" checked=""/>
+<li><input disabled="" type="checkbox"/>
 <a href="https://github.com/SerenityOS/serenity/commit/e308536005020bb03fd34304fd81e17716e620a9">Ports/gdb: Add basic ptrace based native target for SerenityOS/i386</a></li>
 <li><input disabled="" type="checkbox" checked=""/>
 <a href="https://github.com/SerenityOS/serenity/commit/70f3fa2dd2d8923fbd683dda9048938629ac5044">Kernel: Set new process name in <code>do_exec</code> before waiting for the tracer</a></li>
 <li><input disabled="" type="checkbox" checked=""/>
 <a href="https://github.com/SerenityOS/serenity/commit/f01e1d0c17caca18b6d4723bf7579a20395cb6cc">Ports/gdb: Add descriptions to all gdb patches and remove dead code</a></li>
-<li><input disabled="" type="checkbox" checked=""/>
+<li><input disabled="" type="checkbox"/>
 <a href="https://github.com/SerenityOS/serenity/commit/e56262caedb0a1dc3010bfd8209682aa7fde3356">Ports/gdb: Implement wait and mourn_inferior overrides for our target</a></li>
 <li><input disabled="" type="checkbox" checked=""/>
 <a href="https://github.com/SerenityOS/serenity/commit/213df97b55f83889e405f84b294a1c754be4b184">Ports/gdb: Upgrade gdb to version 11.2</a></li>
@@ -171,7 +171,7 @@ Now that I think about it, Andreas even has a video titled
 <a href="https://www.youtube.com/watch?v=epcaK_bhWWA">“Why I don’t use a debugger”</a> on his YouTube channel. 😁</p>
 <p><a href="https://twitter.com/ItamarShenhar">Itamar Shenhar</a> has been doing a bunch of work on Hack Studio,
 and as part of that has implemented <code>ptrace(..)</code> and a basic debugger known as <code>sdb</code> (See <a href="https://github.com/SerenityOS/serenity/pull/1885">PR #1885</a>):</p>
-<pre><code>courage:~ $ sdb /bin/ls
+<pre><code class="language-sh">courage:~ $ sdb /bin/ls
 Program is stopped at: 0x0bfae99d (Loader.so:ELF::DynamicLinker::linker_main() +0x5ed)
 
 (sdb) help
@@ -367,7 +367,7 @@ Much to my surprise, we could see real signs of life after including our basic s
            margin-right: auto;
            width: 80%;"
 src="https://user-images.githubusercontent.com/1212/147570590-b841b53a-4971-4154-92dc-d09c530d86e5.png"/></p>
-<p>As you can see, the program doesn’t seem to actually run, it just halts.</p>
+<p>As you can see, the program doesn’t seem to actually run, it just hangs after launch.</p>
 <h2 id="bonus-bug-kernel-process-name-after-pt_trace_me"><a class="header" href="#bonus-bug-kernel-process-name-after-pt_trace_me">Bonus Bug: Kernel Process Name after <code>PT_TRACE_ME</code></a></h2>
 <p>After the initial port was compiling, I started to debug what in our implementation was
 causing gdb to hang. If you looked at the processes under <code>System Monitor</code> you can see that we have
