@@ -9,13 +9,19 @@ to setup your own, I took some notes about the process here: https://lab.bjg.io/
 Setup:
 ```
 $ cargo install mdbook
-$ cargo install mdbook-linkcheck
-$ cargo install mdbook-admonish
-$ cargo install mdbook-mermaid
-$ cargo install mdbook-toc
 ```
 
 Serve and view the pages locally:
 ```
 $ mdbook serve
+```
+
+# TODO: Plugins I would like to use in the future
+
+```
+$ cargo install mdbook-linkcheck
+$ cargo install mdbook-admonish
+$ cargo install mdbook-mermaid
+$ cargo install mdbook-toc
+$ cargo install mdbook-rss
 ```
