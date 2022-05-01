@@ -6,7 +6,7 @@ This is a living document that describes my process of porting GDB to SerenityOS
 The following changes have made it into the tree to support this work: 
 
 - [X] [LibC: Stub out tcsendbreak(..) and tcdrain(..)](https://github.com/SerenityOS/serenity/commit/7828d4254e7707adcb9bf7190e5c3dc7a8a7d9de)
-- [ ] [Kernel: Return the actual number of CPU cores that we have](https://github.com/SerenityOS/serenity/commit/fcdd2027419607bed6b24a9ee364d6ad4cd99a41)
+- [X] [Kernel: Return the actual number of CPU cores that we have](https://github.com/SerenityOS/serenity/commit/fcdd2027419607bed6b24a9ee364d6ad4cd99a41)
 - [X] [Kernel: Signals galore][signals-galore] 
 - [X] [Ports: Add initial GDB 11.1 port](https://github.com/SerenityOS/serenity/commit/bd3bbd032949642ab113058e6372de40af7f0b2c)
 - [X] [LibC: Make regs.h work with compilers without concepts](https://github.com/SerenityOS/serenity/commit/1210ee9ba9b9a20346cb90e9e1baa92ee1f240d0)
@@ -14,7 +14,7 @@ The following changes have made it into the tree to support this work:
 - [X] [Ports/gdb: Add basic ptrace based native target for SerenityOS/i386](https://github.com/SerenityOS/serenity/commit/e308536005020bb03fd34304fd81e17716e620a9)
 - [X] [Kernel: Set new process name in `do_exec` before waiting for the tracer](https://github.com/SerenityOS/serenity/commit/70f3fa2dd2d8923fbd683dda9048938629ac5044)
 - [X] [Ports/gdb: Add descriptions to all gdb patches and remove dead code](https://github.com/SerenityOS/serenity/commit/f01e1d0c17caca18b6d4723bf7579a20395cb6cc)
-- [ ] [Ports/gdb: Implement wait and mourn_inferior overrides for our target](https://github.com/SerenityOS/serenity/commit/e56262caedb0a1dc3010bfd8209682aa7fde3356)
+- [X] [Ports/gdb: Implement wait and mourn_inferior overrides for our target](https://github.com/SerenityOS/serenity/commit/e56262caedb0a1dc3010bfd8209682aa7fde3356)
 - [X] [Ports/gdb: Upgrade gdb to version 11.2](https://github.com/SerenityOS/serenity/commit/213df97b55f83889e405f84b294a1c754be4b184)
 
 ## Introduction
@@ -465,8 +465,8 @@ index 0000000..ac3cfaa
 
 Once I tried to get this compiling I ran into a funny issue with SerenityOS's LibC and `ptrace()` implementation.
 The implementation exposes registers via a struct `PtraceRegisters`, which assumed that everything that would ever use
-it would be using the SerenityOS AK[^ak-footnote] library, so it pulled in private types. As you can imagine this caused
-a few problems as GDB has no idea about these types, and we were leaking implementation details from our LibC to a random port.
+it would also be using the SerenityOS AK[^ak-footnote] library, so it pulled in private types. As you can imagine this caused
+a few problems as the gdb code has no idea about these types, and we were leaking implementation details from our LibC to a random software port.
 This was easy enough to fix, we just needed to avoid using Serenity specific types and defining C++ functions via this C ABI.
 The diff is a bit boring, so I won't include the whole thing here 😁. 
 After this change to LibC we were back in business and our new serenity target was compiling.
@@ -476,25 +476,179 @@ Commit Link: [LibC: Make regs.h work with compilers without concepts](https://gi
 ## Testing & Debugging
 
 At this stage we had gdb compiling, and it had the basic knowledge about the serenity platform.
-So lets try to start it up and see what happens!
+I posted a draft PR and posted [a message in the SerenityOS discord](https://discord.com/channels/830522505605283862/830807158047244329/921021879291101184)
+letting folks know I had made some progress.
+It was a very late for be a this point, so was headed for bed.
+[Daniel Bertalan](https://github.com/BertalanD), another SerenityOS contributor, [noticed and decided to dig in](https://discord.com/channels/830522505605283862/830807158047244329/921021950896271420) while I was catching some Z's.
 
-The very first time I tried to start `gdb` on the system, it immediately appeared to hang.
+Daniel and Idan (who had contributed to the effort before) both ended up tracking down two bug:
+  - Commit Link: [Kernel: Return the actual number of CPU cores that we have](https://github.com/SerenityOS/serenity/commit/fcdd2027419607bed6b24a9ee364d6ad4cd99a41)
+  - Commit Link: [Ports/gdb: Use mmap instead of malloc for sigaltstack()](https://github.com/SerenityOS/serenity/pull/11278/commits/0b00ec7498dee5d704b3f682ecdc2b580e3b33f8)
+
+
+The first kernel bug Daniel found was pretty straight forward, we were returning max size of the data structure, and not 
+the actual count of processors on the system, which caused gdb to spawn a huge number of threads for now reason.
+
+```diff
+From: Daniel Bertalan <dani@danielbertalan.dev>
+Date: Thu, 16 Dec 2021 18:11:25 +0100
+Subject: [PATCH] Kernel: Return the actual number of CPU cores that we have
+
+... instead of returning the maximum number of Processor objects that we
+can allocate.
+
+Some ports (e.g. gdb) rely on this information to determine the number
+of worker threads to spawn. When gdb spawned 64 threads, the kernel
+could not cope with generating backtraces for it, which prevented us
+from debugging it properly.
+
+This commit also removes the confusingly named
+`Processor::processor_count` function so that this mistake can't happen
+again.
+---
+ Kernel/Arch/x86/Processor.h | 2 --
+ Kernel/Syscalls/sysconf.cpp | 2 +-
+ 2 files changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/Kernel/Arch/x86/Processor.h b/Kernel/Arch/x86/Processor.h
+index c2f91e177311d..cd3962a9c2f44 100644
+--- a/Kernel/Arch/x86/Processor.h
++++ b/Kernel/Arch/x86/Processor.h
+@@ -170,8 +170,6 @@ class Processor {
+     void flush_gdt();
+     const DescriptorTablePointer& get_gdtr();
+ 
+-    static size_t processor_count() { return processors().size(); }
+-
+     template<IteratorFunction<Processor&> Callback>
+     static inline IterationDecision for_each(Callback callback)
+     {
+diff --git a/Kernel/Syscalls/sysconf.cpp b/Kernel/Syscalls/sysconf.cpp
+index ce6b649480c6a..b7a82d73d41e5 100644
+--- a/Kernel/Syscalls/sysconf.cpp
++++ b/Kernel/Syscalls/sysconf.cpp
+@@ -18,7 +18,7 @@ ErrorOr<FlatPtr> Process::sys$sysconf(int name)
+         return 1;
+     case _SC_NPROCESSORS_CONF:
+     case _SC_NPROCESSORS_ONLN:
+-        return Processor::processor_count();
++        return Processor::count();
+     case _SC_OPEN_MAX:
+         return OpenFileDescriptions::max_open();
+     case _SC_PAGESIZE:
+```
+
+The second issue was trickier, Daniel and Idan were seeing [a crash in our LibC free() on gdb startup](https://discord.com/channels/830522505605283862/834391539425476680/921093384746188810)
+when gdb was attempting to allocate an alternate signal stack.
+They eventually root caused the issue to an incompatibility between the SerenityOS memory manager and gdb's assumptions.
+They were able to work around the issue by just `mmap()`ing the alternative signal stack directly, instead of going through malloc.
+
+```diff
+From: Daniel Bertalan <dani@danielbertalan.dev>
+Date: Thu, 16 Dec 2021 19:20:45 +0100
+Subject: [PATCH] Ports/gdb: Use mmap instead of malloc for sigaltstack()
+
+Stack regions can't be made volatile, which makes it impossible for
+malloc to manage memory that's used for `sigaltstack()`. Let's use mmap
+instead.
+
+Co-authored-by: Idan Horowitz <idan.horowitz@gmail.com>
+---
+ Ports/gdb/patches/alt-stack-no-malloc.patch | 70 +++++++++++++++++++++
+ 1 file changed, 70 insertions(+)
+ create mode 100644 Ports/gdb/patches/alt-stack-no-malloc.patch
+
+diff --git a/Ports/gdb/patches/alt-stack-no-malloc.patch b/Ports/gdb/patches/alt-stack-no-malloc.patch
+new file mode 100644
+index 0000000000000..974d1db061a54
+--- /dev/null
++++ b/Ports/gdb/patches/alt-stack-no-malloc.patch
+@@ -0,0 +1,70 @@
++diff --git a/gdbsupport/alt-stack.h b/gdbsupport/alt-stack.h
++index 056ea41..b638533 100644
++--- a/gdbsupport/alt-stack.h
+++++ b/gdbsupport/alt-stack.h
++@@ -20,7 +20,9 @@
++ #ifndef GDBSUPPORT_ALT_STACK_H
++ #define GDBSUPPORT_ALT_STACK_H
++ 
+++#include "common-defs.h"
++ #include <signal.h>
+++#include <sys/mman.h>
++ 
++ namespace gdb
++ {
++@@ -36,31 +38,44 @@ class alternate_signal_stack
++ public:
++   alternate_signal_stack ()
++   {
+++    // We can't use xmalloc here on Serenity, because stack regions
+++    // do not play well with how malloc manages its memory.
++ #ifdef HAVE_SIGALTSTACK
++-    m_stack.reset ((char *) xmalloc (SIGSTKSZ));
++-
++-    stack_t stack;
++-    stack.ss_sp = m_stack.get ();
++-    stack.ss_size = SIGSTKSZ;
++-    stack.ss_flags = 0;
++-
++-    sigaltstack (&stack, &m_old_stack);
+++    void *ptr = mmap (nullptr, SIGSTKSZ, PROT_READ | PROT_WRITE,
+++                      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+++    if (ptr == MAP_FAILED)
+++      {
+++        warning ("could not mmap alternate signal stack");
+++      }
+++    else
+++      {
+++        m_stack = ptr;
+++        stack_t stack;
+++        stack.ss_sp = m_stack;
+++        stack.ss_size = SIGSTKSZ;
+++        stack.ss_flags = 0;
+++
+++        sigaltstack (&stack, &m_old_stack);
+++      }
++ #endif
++   }
++ 
++   ~alternate_signal_stack ()
++   {
++ #ifdef HAVE_SIGALTSTACK
++-    sigaltstack (&m_old_stack, nullptr);
+++    if (m_stack != nullptr)
+++      {
+++        sigaltstack (&m_old_stack, nullptr);
+++        munmap (m_stack, SIGSTKSZ);
+++      }
++ #endif
++   }
++ 
++   DISABLE_COPY_AND_ASSIGN (alternate_signal_stack);
++ 
++ private:
++-
++ #ifdef HAVE_SIGALTSTACK
++-  gdb::unique_xmalloc_ptr<char> m_stack;
+++  void *m_stack{ nullptr };
++   stack_t m_old_stack;
++ #endif
++ };
+```
+
+
+I woke up to discover this awesome progress, and was eager to see how far gdb would make it.
+I launched `gdb` on the system, it immediately appeared to hang.
 Since I did not have a working debugger, I just used the Serenity Profiler to see where the code
-was spinning. I was able to narrow down the problem down to gdb not gracefully handling the `tcdrain(..)` or `tcsendbreak(..)` failure.
-These were the same functions I stubbed out eariler in Serenity's LibC, so they always return failure.
+was spinning. [I was able to narrow down the problem](https://discord.com/channels/830522505605283862/830739873119207426/921857643348369418) to gdb not gracefully handling the `tcdrain(..)` or `tcsendbreak(..)` failure.
+These were the same functions I stubbed out earlier in Serenity's LibC, so they always return failure.
 Returning an error here was causing `gdb` to just spin trying to call it over and over again.
 Fortunately, we did not have to worry about supporting real terminals, only pseudo terminals, so just changing
 the implementation to do nothing but claim success was sufficient for our purposes.
 Commit Link: [LibC: Stub out tcsendbreak(..) and tcdrain()][libc-stubs]:
 
 
-This was another checkpoint for me
-
-
-Now that we had some basic code setup and a basic understanding of gdb's code
-is put together it was time to start trying to see what was left to get something
-really working.
-Much to my surprise, we could see real signs of life after including our basic serenity support.
+Much to my surprise, we could see real signs of life after squashing those bugs:
 
 <img style="display: block;
            margin-left: auto;
@@ -502,24 +656,252 @@ Much to my surprise, we could see real signs of life after including our basic s
            width: 80%;"
 src="https://user-images.githubusercontent.com/1212/147570590-b841b53a-4971-4154-92dc-d09c530d86e5.png"/>
 
-As you can see, the program doesn't seem to actually run, it just hangs after launch.
+gdb is now able to startup and make progress actually towards launching and attaching to `ls`, but `ls` doesn't seem to actually run,
+when we attempt to launch the application it appears to hang after launch. 
+
+## Bridging gdb and Serenity
+
+With the kernel bug fix, I had a better picture of what was going on, it looked like we had a bug
+with how the serenity target was interacting with the Serenity kernel's ptrace() implementation.
+
+After reading the gdb ptrace code and adding a variety of trace points, I finally got a feeling for
+how the gdb `ptrace` target expected things to work.  The flow is supposed to look like this:
+
+1. Debugger calls `fork()`
+2. The forked child calls ptrace() with `PT_TRACE_ME`
+3. The `PT_TRACE_ME` instructs the forked process to block in the
+   kernel waiting for a signal from the tracer on the next call
+   to `execve(..)`. This puts the child in "Stopped" state.
+4. Debugger waits for forked child to spawn and stop, and then it
+   and will resume the child by calling ptrace() with `PT_CONTINUE`.
+
+The first thing that I found with my logging was that the gdb `inf_ptrace_target::wait` implementation
+was getting stuck on step 4, calling `waitpid()` on child process it previously forked. Instead of returning we were
+spinning in this busy loop trying to wait for the child. Ever call to `waitpid()` seemed
+to be failing.
+
+```c++
+/* Wait for the child specified by PTID to do something.  Return the
+   process ID of the child, or MINUS_ONE_PTID in case of error; store
+   the status in *OURSTATUS.  */
+
+ptid_t
+inf_ptrace_target::wait (ptid_t ptid, struct target_waitstatus *ourstatus,
+                         target_wait_flags target_options)
+{ pid_t pid;
+  int options, status, save_errno;
+
+  options = 0;
+  if (target_options & TARGET_WNOHANG)
+    options |= WNOHANG;
+
+  do
+    {
+      set_sigint_trap ();
+
+      do
+        {
+          pid = waitpid (ptid.pid (), &status, options);
+          save_errno = errno;
+        }
+      while (pid == -1 && errno == EINTR);
+```
+
+To figure out why this could be happening I looked at the code that handled `waitpid()` in
+the SerenityOS Kernel, and found the [following morsel of information](https://github.com/SerenityOS/serenity/blob/086969277e74d8ba065bf8145d3aeb0dec0bfee5/Kernel/ThreadBlockers.cpp#L733).
+The implementation will fail if you attempt to wait on a stopped process, but don't pass `WSTOPPED`, or `WUNTRACED` (which are defined in terms of one another).
+So we just need to pass `WSTOPPED` to our `waitpid()` call!
+
+```cpp
+bool Thread::WaitBlocker::unblock(
+    Process& process, UnblockFlags flags, u8 signal, bool from_add_blocker)
+{
+    ... snip ...
+
+    if (do_not_unblock)
+        return false;
+
+    switch (flags) {
+    case UnblockFlags::Terminated:
+        if (!(m_wait_options & WEXITED))
+            return false;
+        break;
+    case UnblockFlags::Stopped:
+        if (!(m_wait_options & WSTOPPED))    // <== HERE!
+            return false;
+        if (!(m_wait_options & WUNTRACED) && !process.is_traced())
+            return false;
+        break;
+
+```
+
+I was able to override the `inf_ptrace_target::wait` implementation in our `serenity_nat_target` derived class.
+So we always pass in `WSTOPPED` to the `waitpid()` operation, and I added a bit more error logging, which would
+have helped me figure this out faster.
+
+```cpp
+ptid_t serenity_nat_target::wait(
+    ptid_t ptid, struct target_waitstatus* ourstatus, target_wait_flags)
+{
+    int pid;
+    int status, save_errno;
+
+    do
+    {
+        set_sigint_trap ();
+
+        do
+        {
+            errno = 0;
+            pid = waitpid (ptid.pid (), &status, WSTOPPED);
+            if (errno != 0)
+            {
+                save_errno = errno;
+                perror_with_name (("waitpid"));
+            }
+        }
+        while (pid == -1 && (save_errno == EINTR || save_errno == EAGAIN));
+```
+
+With that fixed, I moved on to try to the next issue.
+Now that we successfully waited for process to startup, the logging I had added earlier was telling me that `ptrace(PT_CONTINUE, ...)` 
+was failing after the wait.
+
+<img style="display: block; 
+           margin-left: auto;
+           margin-right: auto;
+           width: 80%;"
+      src="gdb-not-permitted.png"/>
+
+Going through the ptrace code in the kernel, I realized that the Serenity implementation of ptrace expects
+the caller to always call `ptrace(PT_ATTACH, ...)` before `ptrace(PT_CONTINUE, ...)` otherwise it will fail.
+
+We can see the that we will return `EPERM` (Operation not permitted) if we don't
+have a trace setup, before we get to the `PT_CONTINUE` handler. We setup the tracer
+only in the code path where `params.request == PT_ATTACH`.
+
+```cpp
+static ErrorOr<FlatPtr> handle_ptrace(
+    Kernel::Syscall::SC_ptrace_params const& params, Process& caller)
+{
+    ... snip ...
+
+    auto peer = Thread::from_tid(params.tid);
+    if (!peer)
+        return ESRCH;
+
+    MutexLocker ptrace_locker(peer->process().ptrace_lock());
+
+    if ((peer->process().uid() != caller.euid())
+        || (peer->process().uid() != peer->process().euid()))
+        return EACCES;
+
+    if (!peer->process().is_dumpable())
+        return EACCES;
+
+    auto& peer_process = peer->process();
+    if (params.request == PT_ATTACH) {      // <============== PT_ATTACH CASE!
+        if (peer_process.tracer()) {
+            return EBUSY;
+        }
+        TRY(peer_process.start_tracing_from(caller.pid()));
+        SpinlockLocker lock(peer->get_lock());
+        if (peer->state() != Thread::State::Stopped) {
+            peer->send_signal(SIGSTOP, &caller);
+        }
+        return 0;
+    }
+
+    auto* tracer = peer_process.tracer();
+
+    if (!tracer)
+        return EPERM;                        // <============== ERROR CASE!
+
+    if (tracer->tracer_pid() != caller.pid())
+        return EBUSY;
+
+    if (peer->state() == Thread::State::Running)
+        return EBUSY;
+
+    scheduler_lock.unlock();
+
+    switch (params.request) {
+    case PT_CONTINUE:
+        peer->send_signal(SIGCONT, &caller);
+        break;
+```
+
+This implementation differs a bit from `ptrace()` implementations on
+other unix like systems, so gdb doesn't actually have a place for us to hook into
+the setup of the debugger target to make our call to `ptrace(PT_ATTACH, ...)`.
+To workaround this, we can (ab)use the `serenity_nat_target::wait` hook that we
+already extended. We can inject our ptrace call only if we think the process has
+just started up.
+
+```cpp
+/* Serenity requires us to PT_ATTACH before we PT_CONTINUE, however GDB doesn't
+ * provide a hook for us to do that before we issue the PT_CONTINUE, so we are
+ * forced to do it here.
+ */
+if (!m_attach_before_continue_called) {
+    errno = 0;
+    ptrace (PT_ATTACH, pid, (PTRACE_TYPE_ARG3)0, 0);
+    if (errno != 0) {
+        save_errno = errno;
+        printf_unfiltered (_("PT_ATTACH failed: %d - %s \n"), 
+            save_errno, safe_strerror (save_errno));
+    }
+    m_attach_before_continue_called = true;
+}
+```
+
+There was one final bug here that I was able to quickly fix. 
+After the process we are debugging finished executing, we would hang waiting
+for it to terminate. This ended up being another serenity peculiarity, where
+we needed to pass `WNOHANG` to `waitpid()` otherwise the call would wait forever.
+The fix ended up being another override of the `inf_ptrace_target` implementation:
+
+```cpp
+void serenity_nat_target::mourn_inferior ()
+{
+    int status;
+    waitpid (inferior_ptid.pid (), &status, WNOHANG);
+
+    inf_child_target::mourn_inferior ();
+}
+```
+
+All of these fixes were collected and sent out in the following pull request.
+[Ports/gdb: Implement wait and mourn_inferior overrides for our target](https://github.com/SerenityOS/serenity/pull/12676)
+With all of these change we are able to run a program under the debugger! 🥳
+
+<img style="display: block; 
+           margin-left: auto;
+           margin-right: auto;
+           width: 80%;"
+      src="gdb-launch-ls.png"/>
+
+
+We launched `/bin/ls` under gdb, it ran, and was able to write it's output to
+`stdout` and it exited and gdb was able to observe that. Unfortunately the
+breakpoint we set did not hit in this case, but that's a bug for later! We have
+to take some time to celebrate. 🎉
 
 ## Bonus Bug: Kernel Process Name after `PT_TRACE_ME`
 
-After the initial port was compiling, I started to debug what in our implementation was
-causing gdb to hang. If you looked at the processes under `System Monitor` you can see that we have
-two processes named `gdb`, one sitting `Stopped`, and one sitting `Selecting` which is serenity's way
-of indicating a process is waiting for something.
+In the middle of debugging the issues with `waitpid()` and `ptrace()` mentioned above,
+I actually took a small detour after I noticed another bug.
+While trouble shooting I noticed was that there were two processes named `gdb` in the `System Monitor`.
+One was sitting in `Stopped` state, and one sitting in `Selecting`[^selecting-footnote] state.
 
-<img style="display: block; 
+<img style="display: block;
            margin-left: auto;
            margin-right: auto;
            width: 80%;"
 src="gdb-incorrect-name.png"/>
 
 This doesn't make any sense, why is gdb launching two processes, and why is it hanging waiting for itself?
-One thing I was wondering is why was the `ptrace(..)` call failing with not permitted? I quickly hacked up some logging to the ptrace
-implementation in the Kernel to let me see what was happening.
+I quickly hacked up some logging to the ptrace implementation in the Kernel to let me see what was happening.
 
 ```diff
 diff --git a/Kernel/Syscalls/ptrace.cpp b/Kernel/Syscalls/ptrace.cpp
@@ -664,10 +1046,25 @@ when processing the signal before, we have resumed the process.
 ```
 
 
-<!-- References -->
+## Conclusion
+
+That's it for now, this is how far I've gotten on the port to date.
+Stay tuned for more progress!
+<img style="display: block;
+           margin-left: auto;
+           margin-right: auto;
+           "
+src="come-back-later.jpg"/>
+
+
+### Footnotes:
 
 [^ak-footnote]: [AK][ak-link] is short for Agnostic Kit, the common C++ library to be used in Kernel or UserMode in the SerenityOS code base.
 
+[^selecting-footnote] `Selecting` indicates a process is waiting on a file descriptor, like `pselect()` for example.
+
+
+<!-- References -->
 [kling-no-debuggie]: https://www.youtube.com/watch?v=epcaK_bhWWA
 [kling]: https://awesomekling.github.io/about/
 [itamar-twitter]: https://twitter.com/ItamarShenhar 
