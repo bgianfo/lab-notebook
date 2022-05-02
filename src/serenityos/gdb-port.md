@@ -63,8 +63,8 @@ The initial work to get the debugger to compile went smoothly. The work started 
 #### Setting up the port script
 
 The first task at hand was to create a script to automate the building of the port.
-Serenity has it's own [ports system][ports] for describing how assets should be downloaded
-and then subsequently unpackaged, and built. The initial version I arrive on looked
+Serenity has its own [ports system][ports] for describing how assets should be downloaded
+and then subsequently unpacked, and built. The initial version looked
 something like this:
 
 ```sh
@@ -89,7 +89,7 @@ export ac_cv_func_madvise=no
 We can see this does a few things:
 - Specifies what version of the gdb source to download and a sha256 hash to validate that `.tar.xz` package with.
 - Specifies that the port expects us to run the `configure` script.
-- Specifies the configure options, which are mostly about how to target serenity's headers and libs, and what options to enable or disable.
+- Specifies the configure options, which are mostly about how to target serenity's headers and libraries, and what options to enable or disable.
 - Expresses a dependency on the `gmp` and `binutils` ports.
 
 
@@ -127,7 +127,7 @@ index 30087e3..11dc114 100644
      targ_defvec=i386_elf32_vec
 ```
 
-With the triplets in place I was able to actually build some code. I quickly
+With the triplets in place, I was able to actually build some code. I quickly
 found some pieces we were missing. One of them was `sigtimedwait()`, I [mentioned
 it in the project's discord][discord-sigtimedwait] and it just so happened that
 [Idan Horowitz][idanho] had recently worked on the signal handling subsystem in the Kernel offered to help me out.
@@ -197,7 +197,7 @@ Looking at the gdb source, there is a pattern of having a few different files:
   -  `<os>-tdep.c`
   -  `<architecture>-<os>-tdep.c`
 
-Here are the files for FreeBSD for example:
+Here are the files for FreeBSD, for example:
 
 ```
 ~/src/serenity/Ports/gdb/gdb-11.2/gdb$ ls *fbsd*.c
@@ -208,10 +208,10 @@ amd64-fbsd-tdep.c    i386-fbsd-nat.c   ppc-fbsd-tdep.c
 arm-fbsd-nat.c	     i386-fbsd-tdep.c  riscv-fbsd-nat.c
 ```
 
-After reading some code the pattern seems to be that gdb places "target-dependent code"
+After reading some code, the pattern seems to be that gdb places "target-dependent code"
 in the `-tdep.c` files, and "native-dependent code" in the `-nat.c` files.
-I also saw that there appears to be a generic `ptrace()` based target that a few other
-operating systems derive from. In the source it's called `inf_ptrace_target`.
+I also saw that there appears to be a generic `ptrace()` based target that other
+operating systems derive from. In the source, it's called `inf_ptrace_target`.
 As I mentioned at the beginning of this post, serenity has basic ptrace support, so reusing
 the ptrace inferior target sounded like a good initial game plane.
 
@@ -221,7 +221,7 @@ theoretically allow us to use gdb to ptrace a serenity program. The broad stroke
 - Deciding to target Serenity on i386/i686 to start, amd64 will follow later.
 - Hooking up our new files to build when targeting SerenityOS.
 - Mapping Serenity's layout of i386 CPU registers to gdb's.
-- Adding a new `i386_serenity_nat_target` devied from `serenity_nat_target`.
+- Adding a new `i386_serenity_nat_target` derived from `serenity_nat_target`.
 - Adding a new OS ABI in gdb for SerenityOS
 - Adding initialization routines to our new target and OS ABI with gdb at runtime. 
 
@@ -463,11 +463,11 @@ index 0000000..ac3cfaa
 +#endif /* serenity-nat.h */
 ```
 
-Once I tried to get this compiling I ran into a funny issue with SerenityOS's LibC and `ptrace()` implementation.
+Once I tried to get this compiling, I ran into a funny issue with SerenityOS's LibC and `ptrace()` implementation.
 The implementation exposes registers via a struct `PtraceRegisters`, which assumed that everything that would ever use
-it would also be using the SerenityOS AK[^ak-footnote] library, so it pulled in private types. As you can imagine this caused
-a few problems as the gdb code has no idea about these types, and we were leaking implementation details from our LibC to a random software port.
-This was easy enough to fix, we just needed to avoid using Serenity specific types and defining C++ functions via this C ABI.
+it would also be using the SerenityOS AK[^ak-footnote] library, so it pulled in private types. As you can imagine, this caused
+a few problems, as the gdb code has no idea about these types, and we were leaking implementation details from our LibC to a random software port.
+This was easy enough to fix, we just needed to avoid using Serenity-specific types and defining C++ functions via this C ABI.
 The diff is a bit boring, so I won't include the whole thing here 😁. 
 After this change to LibC we were back in business and our new serenity target was compiling.
 
@@ -475,19 +475,19 @@ Commit Link: [LibC: Make regs.h work with compilers without concepts](https://gi
 
 ## Testing & Debugging
 
-At this stage we had gdb compiling, and it had the basic knowledge about the serenity platform.
+At this stage, we had gdb compiling, and it had the basic knowledge about the serenity platform.
 I posted a draft PR and posted [a message in the SerenityOS discord](https://discord.com/channels/830522505605283862/830807158047244329/921021879291101184)
 letting folks know I had made some progress.
-It was a very late for be a this point, so was headed for bed.
+It was a very late for me at this point, so I was headed for bed.
 [Daniel Bertalan](https://github.com/BertalanD), another SerenityOS contributor, [noticed and decided to dig in](https://discord.com/channels/830522505605283862/830807158047244329/921021950896271420) while I was catching some Z's.
 
-Daniel and Idan (who had contributed to the effort before) both ended up tracking down two bug:
+Daniel and Idan (who had contributed to the effort before) both ended up tracking down two bugs:
   - Commit Link: [Kernel: Return the actual number of CPU cores that we have](https://github.com/SerenityOS/serenity/commit/fcdd2027419607bed6b24a9ee364d6ad4cd99a41)
   - Commit Link: [Ports/gdb: Use mmap instead of malloc for sigaltstack()](https://github.com/SerenityOS/serenity/pull/11278/commits/0b00ec7498dee5d704b3f682ecdc2b580e3b33f8)
 
 
-The first kernel bug Daniel found was pretty straight forward, we were returning max size of the data structure, and not 
-the actual count of processors on the system, which caused gdb to spawn a huge number of threads for now reason.
+The first kernel bug Daniel found was straightforward, we were returning max size of the data structure, and not 
+the actual count of processors on the system, which caused gdb to erroneously spawn a huge number of threads.
 
 ```diff
 From: Daniel Bertalan <dani@danielbertalan.dev>
@@ -637,12 +637,12 @@ index 0000000000000..974d1db061a54
 ```
 
 
-I woke up to discover this awesome progress, and was eager to see how far gdb would make it.
+I woke up to discover this outstanding progress, and was eager to see how far gdb would make it.
 I launched `gdb` on the system, it immediately appeared to hang.
 Since I did not have a working debugger, I just used the Serenity Profiler to see where the code
 was spinning. [I was able to narrow down the problem](https://discord.com/channels/830522505605283862/830739873119207426/921857643348369418) to gdb not gracefully handling the `tcdrain(..)` or `tcsendbreak(..)` failure.
 These were the same functions I stubbed out earlier in Serenity's LibC, so they always return failure.
-Returning an error here was causing `gdb` to just spin trying to call it over and over again.
+Returning an error here was causing `gdb` to just spin, trying to call it repeatedly.
 Fortunately, we did not have to worry about supporting real terminals, only pseudo terminals, so just changing
 the implementation to do nothing but claim success was sufficient for our purposes.
 Commit Link: [LibC: Stub out tcsendbreak(..) and tcdrain()][libc-stubs]:
@@ -656,8 +656,9 @@ Much to my surprise, we could see real signs of life after squashing those bugs:
            width: 80%;"
 src="https://user-images.githubusercontent.com/1212/147570590-b841b53a-4971-4154-92dc-d09c530d86e5.png"/>
 
-gdb is now able to startup and make progress actually towards launching and attaching to `ls`, but `ls` doesn't seem to actually run,
-when we attempt to launch the application it appears to hang after launch. 
+gdb can now successfully start and makes progress towards launching and then attaching to `ls`.
+We can see that `ls` doesn't seem to actually run,
+when we attempt to launch the application, it appears to hang after launch. 
 
 ## Bridging gdb and Serenity
 
@@ -676,8 +677,8 @@ how the gdb `ptrace` target expected things to work.  The flow is supposed to lo
    and will resume the child by calling ptrace() with `PT_CONTINUE`.
 
 The first thing that I found with my logging was that the gdb `inf_ptrace_target::wait` implementation
-was getting stuck on step 4, calling `waitpid()` on child process it previously forked. Instead of returning we were
-spinning in this busy loop trying to wait for the child. Ever call to `waitpid()` seemed
+was getting stuck on step 4, calling `waitpid()` on the child it previously forked. Instead of returning,
+gdb was spinning in this busy loop trying to wait for the child. Every call to `waitpid()` seemed
 to be failing.
 
 ```c++
