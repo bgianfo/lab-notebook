@@ -15,3 +15,6 @@
 
 - [PolarFire SOC Icicle]()
     - [2020-11-26: Initial Setup](./polarfire/2020-11-26.md)
+
+- [Hardware]()
+    - [2022-07-08: RDTech TC66C With Sigrok](./hardware/rdtech-tc.md)
