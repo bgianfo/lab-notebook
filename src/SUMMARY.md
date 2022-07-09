@@ -13,8 +13,9 @@
     - [2022-01-06: GCC ftrivial-auto-var-init](./serenityos/2022-01-16.md)
     - [2022-02-20: Porting GDB](./serenityos/gdb-port.md)
 
-- [PolarFire SOC Icicle]()
-    - [2020-11-26: Initial Setup](./polarfire/2020-11-26.md)
-
 - [Hardware]()
+    - [2020-11-26: PolarFire SOC Icicle Initial Setup](./polarfire/2020-11-26.md)
     - [2022-07-08: RDTech TC66C With Sigrok](./hardware/rdtech-tc.md)
+
+- [Ideas]()
+    - [Flipper IR Logic Analyzer](./ideas/flipper-ir-toy.md)
