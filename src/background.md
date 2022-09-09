@@ -5,7 +5,7 @@ tips or tricks that I discover.
 
 The idea for this "lab notebook" was inspired by:
 - [@whitequark](https://twitter.com/whitequark) - [lab.whitequark.org](https://lab.whitequark.org/)
-- [@bitshiftmask](https://twitter.com/bitshiftmask) - [lab.jamesmunns.com](https://lab.jamesmunns.com/) 
+- [@bitshiftmask](https://twitter.com/bitshiftmask) - [lab.jamesmunns.com](https://lab.jamesmunns.com/)
 
 It's built with [mdbook](https://github.com/rust-lang/mdBook) and automatically
 published with [mdbook-action](https://github.com/marketplace/actions/mdbook-action).
