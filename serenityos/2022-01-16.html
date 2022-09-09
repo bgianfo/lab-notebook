@@ -167,7 +167,7 @@ throughout the windows kernel and hyper visor stack.</p>
 the system against would be attackers. I was interested in pursuing some sort
 of stack zeroing mechanism to mitigate this entire bug class in the SerenityOS
 kernel. SerenityOS utilizes GCC (version 11.2 at the time of writing) as it’s
-primary toolchain, with secondary support for Clang+LLVM available as well. </p>
+primary toolchain, with secondary support for Clang+LLVM available as well.</p>
 <p>So I started researching what options were available for GCC.</p>
 <h2 id="forward-porting"><a class="header" href="#forward-porting">Forward porting…</a></h2>
 <p>With a little bit of effort I was able to backport the GCC <code>-ftrivial-auto-var-init</code>
@@ -222,7 +222,7 @@ Author: Brian Gianforcaro &lt;bgianf@serenityos.org&gt;
 Date:   Sat Sep 11 09:14:53 2021 -0700
 
     Backport 'avoid ICE with auto-init and nested functions' fix
-    
+
 
     This is a follow up fix to the main `-ftrivial-auto-var-init` patch
     that we need as well. This patch didn't require any work to apply.
@@ -266,8 +266,8 @@ index dbf1d8be8f..bf361e1aa2 100644
 </code></pre>
 <h2 id="investigation"><a class="header" href="#investigation">Investigation</a></h2>
 <p>After booting the system and seeing it crash, I attached a debugger to QEMU and saw
-that we now have a Undefined Behavior Sanitizer crash on startup while detecting 
-which processor features are available. </p>
+that we now have a Undefined Behavior Sanitizer crash on startup while detecting
+which processor features are available.</p>
 <pre><code class="language-cpp">(gdb) bt
 #0  __ubsan_handle_type_mismatch_v1 (data=..., ptr=...)
 #1  0xc1460d63 in operator() (f=..., __closure=...)

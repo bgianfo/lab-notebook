@@ -179,13 +179,13 @@ index 7597e97fab..df039d3f82 100644
 @@ -125,9 +125,7 @@ if (CMAKE_SYSTEM_NAME MATCHES Darwin)
      set(CMAKE_SKIP_RPATH TRUE)
  endif()
- 
+
 -#FIXME: -fstack-protector
 -
 -add_compile_options(-Os -g1 -fno-exceptions -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-nonnull-compare -Wno-deprecated-copy -Wno-expansion-to-defined)
 +add_compile_options(-Os -g1 -fno-exceptions -fstack-protector-strong -Wno-address-of-packed-member -Wundef -Wcast-qual -Wwrite-strings -Wimplicit-fallthrough -Wno-nonnull-compare -Wno-deprecated-copy -Wno-expansion-to-defined)
  add_compile_options(-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.)
- 
+
  add_compile_definitions(DEBUG SANITIZE_PTRS)
 </code></pre>
 <p>The system compiles, but fails to link after adding the new flag. The link errors
@@ -195,7 +195,7 @@ FAILED: Libraries/LibC/libc.so
 ../Libraries/LibC/stdlib.cpp:1062: undefined reference to `__stack_chk_fail_local'
 </code></pre>
 <p>It looks like we need to expose this symbol in the Serenity <code>LibC</code> implementation
-so that the compile generated function epilogue code can call it. It turns out 
+so that the compile generated function epilogue code can call it. It turns out
 that there was some previous work here, and I just needed to extended it to get
 it working again. This is what I came up with:</p>
 <pre><code class="language-diff">diff --git a/Libraries/LibC/cxxabi.cpp b/Libraries/LibC/cxxabi.cpp
@@ -205,7 +205,7 @@ index cc920dec89..05978bfe9b 100644
 @@ -24,7 +24,6 @@
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   */
- 
+
 -#include &lt;AK/Types.h&gt;
  #include &lt;assert.h&gt;
  #include &lt;stdio.h&gt;
@@ -213,7 +213,7 @@ index cc920dec89..05978bfe9b 100644
 @@ -87,11 +86,4 @@ void __cxa_finalize(void* dso_handle)
      ASSERT_NOT_REACHED();
  }
- 
+
 -extern u32 __stack_chk_guard;
 -u32 __stack_chk_guard = (u32)0xc6c7c8c9;
 -
@@ -259,12 +259,12 @@ diff --git a/Libraries/LibC/sys/internals.h b/Libraries/LibC/sys/internals.h
 index 70443404e1..c23785a02e 100644
 --- a/Libraries/LibC/sys/internals.h
 +++ b/Libraries/LibC/sys/internals.h
-@@ -43,5 +43,6 @@ 
+@@ -43,5 +43,6 @@
  void __cxa_finalize(void* dso_handle);
  [[noreturn]] void __cxa_pure_virtual() __attribute__((weak));
  [[noreturn]] void __stack_chk_fail();
 +[[noreturn]] void __stack_chk_fail_local();
- 
+
  __END_DECLS
 </code></pre>
 <h2 id="getting-sidetracked-with-linking"><a class="header" href="#getting-sidetracked-with-linking">Getting Sidetracked with Linking</a></h2>
@@ -315,7 +315,7 @@ Subject: Re: undefined reference to __stack_chk_fail_local (x86)
 * Matias Fonzo &lt;selk@...gora.org&gt; [2018-09-11 09:27:45 -0300]:
 &gt; Bootstrapping Dragora (distro) reflects an error trying to build the
 &gt; kernel headers using musl 1.1.20:
-&gt; 
+&gt;
 &gt; Running build() ...
 &gt;   UPD     include/generated/uapi/linux/version.h
 &gt;   HOSTCC  scripts/basic/fixdep
@@ -329,7 +329,7 @@ Subject: Re: undefined reference to __stack_chk_fail_local (x86)
 &gt; final link failed: Bad value collect2: error: ld returned 1 exit status
 &gt; make[1]: *** [scripts/Makefile.host:90: scripts/basic/fixdep] Error 1
 &gt; make: *** [Makefile:464: scripts_basic] Error 2 Return status = 2
-&gt; 
+&gt;
 
 this happens because on i386 and powerpc gcc emits _local_ calls
 to __stack_chk_fail_local which means it has to be defined within
@@ -350,26 +350,26 @@ definition. (this is what alpine linux does)
 you can also do this manually or disable ssp with -fno-stack-protector,
 it may also work if a preincluded header declared it as weak
 so undefined weak reference would just become 0 (and crash at runtime
-which is the intended behaviour), but i havent tested that.
+which is the intended behaviour), but i haven't tested that.
 </code></pre>
-<p>After reading this I modified the CMake changes I had made to include my new 
+<p>After reading this I modified the CMake changes I had made to include my new
 <code>spp.cpp</code> file into <strong>LibC</strong> to factor it out into it’s own static library
 that can be automatically inserted as a dependent library whenever LibC is linked:</p>
 <pre><code class="language-diff">diff --git a/Libraries/LibC/CMakeLists.txt b/Libraries/LibC/CMakeLists.txt
 index 3366957d5d..971880ca00 100644
 --- a/Libraries/LibC/CMakeLists.txt
 +++ b/Libraries/LibC/CMakeLists.txt
-@@ -71,13 +71,21 @@ 
+@@ -71,13 +71,21 @@
  )
- 
+
 +add_library(ssp STATIC ssp.cpp)
  set(SOURCES ${LIBC_SOURCES} ${AK_SOURCES} ${ELF_SOURCES})
- 
+
  serenity_libc_static(LibCStatic c)
 -target_link_libraries(LibCStatic crt0)
 +target_link_libraries(LibCStatic crt0 ssp)
  add_dependencies(LibCStatic LibM)
- 
+
  set(CMAKE_CXX_FLAGS &quot;${CMAKE_CXX_FLAGS} -static-libstdc++&quot;)
  serenity_libc(LibC c)
 -target_link_libraries(LibC crt0)
@@ -408,12 +408,12 @@ int main()
     return 0;
 }
 </code></pre>
-<p>Lets see what happens if we compile this, and run it in Serenity. </p>
+<p>Lets see what happens if we compile this, and run it in Serenity.</p>
 <pre><code>courage ~ $ ./user/Tests/LibC/stack-smash
 [+] Starting the stack smash ...
 [+] Stack smash wasn't detected!
 </code></pre>
-<p>Hrm… that’s not good, what’s going on? </p>
+<p>Hrm… that’s not good, what’s going on?</p>
 <p>After looking at the disassembly it’s obvious, the <code>stack_to_smash()</code> call is being
 completely in-lined and optimized out.</p>
 <pre><code class="language-x86asm">$ objdump -M intel --disassemble=main Userland/Tests/LibC/stack-smash
@@ -548,7 +548,7 @@ Error: Stack protector failure, stack smashing detected!
 Shell: Job 1 (/usr/Tests/LibC/stack-smash) Aborted
 </code></pre>
 <h2 id="final-pull-request"><a class="header" href="#final-pull-request">Final Pull Request</a></h2>
-<p>You can find the resulting pull request that was later merged here: 
+<p>You can find the resulting pull request that was later merged here:
 <a href="https://github.com/SerenityOS/serenity/pull/4726">Build + LibC: Enable -fstack-protector-strong in user space</a></p>
 
                     </main>

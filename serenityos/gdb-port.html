@@ -138,14 +138,14 @@
                         <h1 id="porting-gdb-to-serenityos"><a class="header" href="#porting-gdb-to-serenityos">Porting GDB to SerenityOS</a></h1>
 <h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
 <p>This is a living document that describes my process of porting GDB to SerenityOS.
-The following changes have made it into the tree to support this work: </p>
+The following changes have made it into the tree to support this work:</p>
 <ul>
 <li><input disabled="" type="checkbox" checked=""/>
 <a href="https://github.com/SerenityOS/serenity/commit/7828d4254e7707adcb9bf7190e5c3dc7a8a7d9de">LibC: Stub out tcsendbreak(..) and tcdrain(..)</a></li>
 <li><input disabled="" type="checkbox" checked=""/>
 <a href="https://github.com/SerenityOS/serenity/commit/fcdd2027419607bed6b24a9ee364d6ad4cd99a41">Kernel: Return the actual number of CPU cores that we have</a></li>
 <li><input disabled="" type="checkbox" checked=""/>
-<a href="https://github.com/SerenityOS/serenity/pull/11216">Kernel: Signals galore</a> </li>
+<a href="https://github.com/SerenityOS/serenity/pull/11216">Kernel: Signals galore</a></li>
 <li><input disabled="" type="checkbox" checked=""/>
 <a href="https://github.com/SerenityOS/serenity/commit/bd3bbd032949642ab113058e6372de40af7f0b2c">Ports: Add initial GDB 11.1 port</a></li>
 <li><input disabled="" type="checkbox" checked=""/>
@@ -195,7 +195,7 @@ causing complicated systems level bugs and even learning how a complex program w
 opinion. I think I would be a lot more productive working on Serenity if I had a more powerful debugger,
 like <code>gdb</code>.  That’s when I decided to try porting the <strong>GNU Project Debugger</strong> to SerenityOS!</p>
 <h2 id="getting-things-compiling"><a class="header" href="#getting-things-compiling">Getting Things Compiling</a></h2>
-<p>The initial work to get the debugger to compile went smoothly. The work started in </p>
+<p>The initial work to get the debugger to compile went smoothly. The work started in</p>
 <p><a href="https://github.com/SerenityOS/serenity/pull/11278">PR #11278 - LibC+Ports: Add initial GDB 11.1 port</a>.</p>
 <h4 id="setting-up-the-port-script"><a class="header" href="#setting-up-the-port-script">Setting up the port script</a></h4>
 <p>The first task at hand was to create a script to automate the building of the port.
@@ -227,7 +227,7 @@ export ac_cv_func_madvise=no
 <li>Expresses a dependency on the <code>gmp</code> and <code>binutils</code> ports.</li>
 </ul>
 <h4 id="missing-dependencies"><a class="header" href="#missing-dependencies">Missing Dependencies</a></h4>
-<p>The next step was to modify the gdb <code>configure</code> scripts to enlighten them about the platform triplets (<code>i386-pc-serenity</code>, <code>x86_64-pc-serenity</code>), </p>
+<p>The next step was to modify the gdb <code>configure</code> scripts to enlighten them about the platform triplets (<code>i386-pc-serenity</code>, <code>x86_64-pc-serenity</code>),</p>
 <pre><code class="language-diff">diff --git a/bfd/config.bfd b/bfd/config.bfd
 index 30087e3..11dc114 100644
 --- a/bfd/config.bfd
@@ -264,7 +264,7 @@ it in the project’s discord</a> and it just so happened that
 If anyone is interested in some kernel work,
 I need sigtimedwait() for a port of GDB.
 I'll get around to it if no one is interested...
-but just thought I'd throw it out there in case someone is collecting yaks 
+but just thought I'd throw it out there in case someone is collecting yaks
 
 IdanHo — 12/11/2021
 I just touched signal handling a bunch, so I'll try looking into it
@@ -339,7 +339,7 @@ theoretically allow us to use gdb to ptrace a serenity program. The broad stroke
 <li>Mapping Serenity’s layout of i386 CPU registers to gdb’s.</li>
 <li>Adding a new <code>i386_serenity_nat_target</code> derived from <code>serenity_nat_target</code>.</li>
 <li>Adding a new OS ABI in gdb for SerenityOS</li>
-<li>Adding initialization routines to our new target and OS ABI with gdb at runtime. </li>
+<li>Adding initialization routines to our new target and OS ABI with gdb at runtime.</li>
 </ul>
 <p>The initial version looked something like this, it was later cleaned up as <a href="https://github.com/SerenityOS/serenity/commit/e308536005020bb03fd34304fd81e17716e620a9">Ports/gdb: Add basic ptrace based native target for SerenityOS/i386</a>:</p>
 <pre><code class="language-diff">diff --git a/gdb/configure.nat b/gdb/configure.nat
@@ -411,22 +411,22 @@ index 0000000..034252a
 +
 +static const struct regcache_map_entry i386_serenity_gregmap[] =
 +{
-+    { 1, I386_EAX_REGNUM, 0 }, 
-+    { 1, I386_ECX_REGNUM, 0 }, 
-+    { 1, I386_EDX_REGNUM, 0 }, 
-+    { 1, I386_EBX_REGNUM, 0 }, 
-+    { 1, I386_ESP_REGNUM, 0 }, 
-+    { 1, I386_EBP_REGNUM, 0 }, 
-+    { 1, I386_ESI_REGNUM, 0 }, 
-+    { 1, I386_EDI_REGNUM, 0 }, 
-+    { 1, I386_EIP_REGNUM, 0 }, 
-+    { 1, I386_EFLAGS_REGNUM, 0 }, 
-+    { 1, I386_CS_REGNUM, 0 }, 
-+    { 1, I386_SS_REGNUM, 0 }, 
-+    { 1, I386_DS_REGNUM, 0 }, 
-+    { 1, I386_ES_REGNUM, 0 }, 
-+    { 1, I386_FS_REGNUM, 0 }, 
-+    { 1, I386_GS_REGNUM, 0 }, 
++    { 1, I386_EAX_REGNUM, 0 },
++    { 1, I386_ECX_REGNUM, 0 },
++    { 1, I386_EDX_REGNUM, 0 },
++    { 1, I386_EBX_REGNUM, 0 },
++    { 1, I386_ESP_REGNUM, 0 },
++    { 1, I386_EBP_REGNUM, 0 },
++    { 1, I386_ESI_REGNUM, 0 },
++    { 1, I386_EDI_REGNUM, 0 },
++    { 1, I386_EIP_REGNUM, 0 },
++    { 1, I386_EFLAGS_REGNUM, 0 },
++    { 1, I386_CS_REGNUM, 0 },
++    { 1, I386_SS_REGNUM, 0 },
++    { 1, I386_DS_REGNUM, 0 },
++    { 1, I386_ES_REGNUM, 0 },
++    { 1, I386_FS_REGNUM, 0 },
++    { 1, I386_GS_REGNUM, 0 },
 +    { 0 },
 +};
 +
@@ -568,7 +568,7 @@ index 0000000..ac3cfaa
 +#include &quot;inf-ptrace.h&quot;
 +
 +/* A prototype generic Serenity target.
-+   A concrete instance should override it with local methods. 
++   A concrete instance should override it with local methods.
 +*/
 +
 +class serenity_nat_target : public inf_ptrace_target
@@ -582,7 +582,7 @@ The implementation exposes registers via a struct <code>PtraceRegisters</code>, 
 it would also be using the SerenityOS AK<sup class="footnote-reference"><a href="#ak-footnote">1</a></sup> library, so it pulled in private types. As you can imagine, this caused
 a few problems, as the gdb code has no idea about these types, and we were leaking implementation details from our LibC to a random software port.
 This was easy enough to fix, we just needed to avoid using Serenity-specific types and defining C++ functions via this C ABI.
-The diff is a bit boring, so I won’t include the whole thing here 😁. 
+The diff is a bit boring, so I won’t include the whole thing here 😁.
 After this change to LibC we were back in business and our new serenity target was compiling.</p>
 <p>Commit Link: <a href="https://github.com/SerenityOS/serenity/commit/1210ee9ba9b9a20346cb90e9e1baa92ee1f240d0">LibC: Make regs.h work with compilers without concepts</a></p>
 <h2 id="testing--debugging"><a class="header" href="#testing--debugging">Testing &amp; Debugging</a></h2>
@@ -596,7 +596,7 @@ It was a very late for me at this point, so I was headed for bed.
 <li>Commit Link: <a href="https://github.com/SerenityOS/serenity/commit/fcdd2027419607bed6b24a9ee364d6ad4cd99a41">Kernel: Return the actual number of CPU cores that we have</a></li>
 <li>Commit Link: <a href="https://github.com/SerenityOS/serenity/pull/11278/commits/0b00ec7498dee5d704b3f682ecdc2b580e3b33f8">Ports/gdb: Use mmap instead of malloc for sigaltstack()</a></li>
 </ul>
-<p>The first kernel bug Daniel found was straightforward, we were returning max size of the data structure, and not 
+<p>The first kernel bug Daniel found was straightforward, we were returning max size of the data structure, and not
 the actual count of processors on the system, which caused gdb to erroneously spawn a huge number of threads.</p>
 <pre><code class="language-diff">From: Daniel Bertalan &lt;dani@danielbertalan.dev&gt;
 Date: Thu, 16 Dec 2021 18:11:25 +0100
@@ -625,7 +625,7 @@ index c2f91e177311d..cd3962a9c2f44 100644
 @@ -170,8 +170,6 @@ class Processor {
      void flush_gdt();
      const DescriptorTablePointer&amp; get_gdtr();
- 
+
 -    static size_t processor_count() { return processors().size(); }
 -
      template&lt;IteratorFunction&lt;Processor&amp;&gt; Callback&gt;
@@ -676,11 +676,11 @@ index 0000000000000..974d1db061a54
 +@@ -20,7 +20,9 @@
 + #ifndef GDBSUPPORT_ALT_STACK_H
 + #define GDBSUPPORT_ALT_STACK_H
-+ 
++
 ++#include &quot;common-defs.h&quot;
 + #include &lt;signal.h&gt;
 ++#include &lt;sys/mman.h&gt;
-+ 
++
 + namespace gdb
 + {
 +@@ -36,31 +38,44 @@ class alternate_signal_stack
@@ -716,7 +716,7 @@ index 0000000000000..974d1db061a54
 ++      }
 + #endif
 +   }
-+ 
++
 +   ~alternate_signal_stack ()
 +   {
 + #ifdef HAVE_SIGALTSTACK
@@ -728,9 +728,9 @@ index 0000000000000..974d1db061a54
 ++      }
 + #endif
 +   }
-+ 
++
 +   DISABLE_COPY_AND_ASSIGN (alternate_signal_stack);
-+ 
++
 + private:
 +-
 + #ifdef HAVE_SIGALTSTACK
@@ -757,7 +757,7 @@ Commit Link: <a href="https://github.com/SerenityOS/serenity/pull/11278/commits/
 src="https://user-images.githubusercontent.com/1212/147570590-b841b53a-4971-4154-92dc-d09c530d86e5.png"/></p>
 <p>gdb can now successfully start and makes progress towards launching and then attaching to <code>ls</code>.
 We can see that <code>ls</code> doesn’t seem to actually run,
-when we attempt to launch the application, it appears to hang after launch. </p>
+when we attempt to launch the application, it appears to hang after launch.</p>
 <h2 id="bridging-gdb-and-serenity"><a class="header" href="#bridging-gdb-and-serenity">Bridging gdb and Serenity</a></h2>
 <p>With the kernel bug fix, I had a better picture of what was going on, it looked like we had a bug
 with how the serenity target was interacting with the Serenity kernel’s ptrace() implementation.</p>
@@ -852,9 +852,9 @@ have helped me figure this out faster.</p>
         while (pid == -1 &amp;&amp; (save_errno == EINTR || save_errno == EAGAIN));
 </code></pre>
 <p>With that fixed, I moved on to try to the next issue.
-Now that we successfully waited for process to startup, the logging I had added earlier was telling me that <code>ptrace(PT_CONTINUE, ...)</code> 
+Now that we successfully waited for process to startup, the logging I had added earlier was telling me that <code>ptrace(PT_CONTINUE, ...)</code>
 was failing after the wait.</p>
-<p><img style="display: block; 
+<p><img style="display: block;
            margin-left: auto;
            margin-right: auto;
            width: 80%;"
@@ -928,13 +928,13 @@ if (!m_attach_before_continue_called) {
     ptrace (PT_ATTACH, pid, (PTRACE_TYPE_ARG3)0, 0);
     if (errno != 0) {
         save_errno = errno;
-        printf_unfiltered (_(&quot;PT_ATTACH failed: %d - %s \n&quot;), 
+        printf_unfiltered (_(&quot;PT_ATTACH failed: %d - %s \n&quot;),
             save_errno, safe_strerror (save_errno));
     }
     m_attach_before_continue_called = true;
 }
 </code></pre>
-<p>There was one final bug here that I was able to quickly fix. 
+<p>There was one final bug here that I was able to quickly fix.
 After the process we are debugging finished executing, we would hang waiting
 for it to terminate. This ended up being another serenity peculiarity, where
 we needed to pass <code>WNOHANG</code> to <code>waitpid()</code> otherwise the call would wait forever.
@@ -950,7 +950,7 @@ The fix ended up being another override of the <code>inf_ptrace_target</code> im
 <p>All of these fixes were collected and sent out in the following pull request.
 <a href="https://github.com/SerenityOS/serenity/pull/12676">Ports/gdb: Implement wait and mourn_inferior overrides for our target</a>
 With all of these change we are able to run a program under the debugger! 🥳</p>
-<p><img style="display: block; 
+<p><img style="display: block;
            margin-left: auto;
            margin-right: auto;
            width: 80%;"
@@ -1026,13 +1026,13 @@ following output:</p>
 </code></pre>
 <p>The logging output gives us a clue, we appear to be properly forking and calling
 ptrace correctly, however the name of the process appears to be incorrect in the
-kernel? </p>
+kernel?</p>
 <p>After some digging around in the code, the issue turned out to be the location
 where we were updating the process name in <code>execve(..)</code> had a very minor bug
 which caused the process name to be incorrect. The fix was trivial, it can be
 found here: <a href="https://github.com/SerenityOS/serenity/pull/12464">Kernel: Set new process name in do_exec before waiting for the tracer</a>.</p>
 <p>The commit message itself provides a nice description of the interaction between
-<code>fork()</code>, <code>ptrace()</code> and <code>execve(..)</code> that are involved here: </p>
+<code>fork()</code>, <code>ptrace()</code> and <code>execve(..)</code> that are involved here:</p>
 <pre><code class="language-diff">From: Brian Gianforcaro &lt;bgianf@serenityos.org&gt;
 Date: Sat, 12 Feb 2022 08:17:42 -0800
 Subject: [PATCH] Kernel: Set new process name in `do_exec` before waiting for
