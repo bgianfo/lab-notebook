@@ -12,12 +12,13 @@ Here's the steps I cobbled together to do that on my machine.
 ```bash
 
 #!/bin/bash
+set -euo pipefail
 
 # Based off of the notes for the Twinkie device located here:
 # https://www.chromium.org/chromium-os/twinkie/build-sigrok-and-pulseview-from-sources/
 
 sudo apt-get install gcc g++ libtool automake autoconf libftdi-dev libusb-1.0-0-dev libglib2.0-dev check libzip-dev
-sudo apt-get install libzip-dev libglibmm-2.4-dev doxygen python-gobject-dev swig3.0 libhidapi-dev libserialport-dev
+sudo apt-get install libzip-dev libglibmm-2.4-dev doxygen swig3.0 libhidapi-dev libserialport-dev libieee1284-3-dev
 sudo apt-get install qtbase5-dev qtbase5-dev-tools libqt5svg5-dev cmake
 sudo apt-get install libboost-filesystem-dev libboost-serialization-dev
 
